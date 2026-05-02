@@ -1,0 +1,198 @@
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #000;
+    color: #fff;
+    font-family: 'VT323', monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 640px;
+}
+
+#enemy-container {
+    height: 150px;
+    width: 100%;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#sans-sprite {
+    position: absolute;
+    height: 140px;
+    width: auto;
+    transition: transform 0.1s ease;
+    image-rendering: pixelated; /* ドット絵をくっきりさせる */
+}
+
+#miss-text {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #bbb;
+    font-size: 32px;
+    font-weight: bold;
+    z-index: 10;
+}
+
+#speech-bubble {
+    position: absolute;
+    left: calc(50% + 80px); /* サンズの右横 */
+    top: 10px;
+    background-color: white;
+    color: black;
+    border-radius: 10px;
+    padding: 10px 15px;
+    width: 200px;
+    min-height: 50px;
+    font-size: 20px;
+    z-index: 50;
+    box-sizing: border-box;
+}
+
+#speech-bubble::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: -20px;
+    border-width: 10px;
+    border-style: solid;
+    border-color: transparent white transparent transparent;
+}
+
+.hidden {
+    display: none !important;
+}
+
+#arena {
+    border: 4px solid #fff;
+    box-sizing: content-box;
+    margin-bottom: 20px;
+}
+
+canvas {
+    display: block;
+    background-color: #000;
+}
+
+#ui-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.hp-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.hp-label { color: #fff; }
+.kr-label { color: #fff; }
+
+.hp-bar-bg {
+    width: 150px;
+    height: 25px;
+    background-color: #f00; /* 赤色ベース (失ったHP) */
+    position: relative;
+}
+
+#hp-bar-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background-color: #ff0; /* 黄色 (現在のHP) */
+    width: 100%;
+    transition: width 0.05s linear;
+}
+
+#kr-bar-fill {
+    position: absolute;
+    top: 0;
+    left: 100%; /* hp-bar-fill の右端から描画されるようJSで制御する */
+    height: 100%;
+    background-color: #f0f; /* 紫色 (カルマ) */
+    width: 0%;
+    transition: width 0.05s linear;
+}
+
+.controls {
+    display: flex;
+    gap: 15px; /* ボタン間隔を少し狭める */
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.menu-btn {
+    background-color: #000;
+    color: #f90;
+    border: 2px solid #f90;
+    padding: 10px 15px;
+    font-family: inherit;
+    font-size: 24px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+    min-width: 120px;
+}
+
+.menu-btn:hover:not(:disabled) {
+    background-color: #310;
+}
+
+#screen-flash {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #000;
+    z-index: 9999;
+}
+
+#debug-info {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    color: #0f0;
+    font-size: 20px;
+    z-index: 1000;
+}
+.hidden { display: none !important; }
+
+#gameover-screen {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: black;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    font-family: 'Courier New', monospace;
+}
+#gameover-screen.hidden { display: none !important; }
+#gameover-title { color: white; font-size: 52px; margin-bottom: 12px; letter-spacing: 6px; }
+#gameover-sub { color: #888; font-size: 18px; margin-bottom: 48px; }
+#retry-btn {
+    background: black; color: white; border: 2px solid white;
+    font-family: 'Courier New', monospace; font-size: 22px;
+    padding: 12px 48px; cursor: pointer; letter-spacing: 2px;
+}
+#retry-btn:hover { background: white; color: black; }
