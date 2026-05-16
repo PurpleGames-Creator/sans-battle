@@ -1927,9 +1927,7 @@ allMenuBtns.forEach(btn => {
 });
 
 // 開幕：セリフ→予告→必殺技→本編
-elFlash.classList.remove('hidden');
 setTimeout(() => {
-    elFlash.classList.add('hidden');
     loop();
     State.turnState = 2;
 
@@ -1944,14 +1942,8 @@ setTimeout(() => {
         showMessage("…こういうやつだ。");
     }, 5000);
 
-    // 暗転→必殺技
+    // 必殺技
     setTimeout(() => {
-        elFlash.classList.remove('hidden');
-    }, 6200);
-
-    setTimeout(() => {
-        elFlash.classList.add('hidden');
-
         // 骨が長い時間続く（低い骨と高い骨が交互）
         for (let i = 0; i < 14; i++) {
             setTimeout(() => {
