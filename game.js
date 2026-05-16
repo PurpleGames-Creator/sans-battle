@@ -719,17 +719,17 @@ class Bone {
             drawBonePixel(6, i);
         }
 
-        // 上の先端（丸みを帯びる）
+        // 上の先端（左右に分かれる＋丸み）
         drawBonePixel(4, 0); drawBonePixel(5, 0);
-        drawBonePixel(3, 1); drawBonePixel(4, 1); drawBonePixel(5, 1); drawBonePixel(6, 1);
-        drawBonePixel(3, 2); drawBonePixel(4, 2); drawBonePixel(5, 2); drawBonePixel(6, 2);
+        drawBonePixel(3, 1); drawBonePixel(6, 1);
+        drawBonePixel(3, 2); drawBonePixel(6, 2);
         drawBonePixel(3, 3); drawBonePixel(4, 3); drawBonePixel(5, 3); drawBonePixel(6, 3);
 
-        // 下の先端（丸みを帯びる）
+        // 下の先端（左右に分かれる＋丸み）
         const bottomOffset = Math.floor(this.h / scale) - 3;
         drawBonePixel(3, bottomOffset); drawBonePixel(4, bottomOffset); drawBonePixel(5, bottomOffset); drawBonePixel(6, bottomOffset);
-        drawBonePixel(3, bottomOffset + 1); drawBonePixel(4, bottomOffset + 1); drawBonePixel(5, bottomOffset + 1); drawBonePixel(6, bottomOffset + 1);
-        drawBonePixel(3, bottomOffset + 2); drawBonePixel(4, bottomOffset + 2); drawBonePixel(5, bottomOffset + 2); drawBonePixel(6, bottomOffset + 2);
+        drawBonePixel(3, bottomOffset + 1); drawBonePixel(6, bottomOffset + 1);
+        drawBonePixel(3, bottomOffset + 2); drawBonePixel(6, bottomOffset + 2);
         drawBonePixel(4, bottomOffset + 3); drawBonePixel(5, bottomOffset + 3);
     }
     checkCollision(pl) {
