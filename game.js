@@ -1,12 +1,6 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// ★スマホ対応：canvasのタッチをゲーム操作のみに限定
-canvas.style.touchAction = 'none';
-// ★ボタンへのタッチが妨害されないようcanvasのpointerEventsを制限
-canvas.addEventListener('touchstart', e => { e.preventDefault(); }, { passive: false });
-canvas.addEventListener('touchmove',  e => { e.preventDefault(); }, { passive: false });
-
 // ★効果音システム（Web Audio API）
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 const audioCtx = new AudioCtx();
@@ -17,7 +11,7 @@ function playSound(type) {
 
     const now = audioCtx.currentTime;
 
-    switch(type) {
+    switch (type) {
 
         // 骨が飛ぶ音（短いシュッ）
         case 'bone': {
@@ -249,8 +243,8 @@ function playSound(type) {
     }
 }
 
-let W = canvas.width;   // 560
-let H = canvas.height;  // 370
+const W = canvas.width;
+const H = canvas.height;
 
 const elHpText = document.getElementById('hp-text');
 const elHpFill = document.getElementById('hp-bar-fill');
@@ -262,9 +256,9 @@ const elMercyBtn = document.getElementById('mercy-btn');
 const allMenuBtns = [elFightBtn, elActBtn, elItemBtn, elMercyBtn];
 const elSans = document.getElementById('sans-sprite');
 // ★サンズを大きく・上に
-elSans.style.height = '150px';
+elSans.style.height = '180px';
 elSans.style.width = 'auto';
-elSans.style.marginBottom = '0px';
+elSans.style.marginBottom = '60px';
 
 // ★赤い斬撃エフェクト
 function slashEffect() {
@@ -374,11 +368,6 @@ function slashEffect() {
 }
 const elMiss = document.getElementById('miss-text');
 const elFlash = document.getElementById('screen-flash');
-
-// ★暗転ヘルパー関数
-function flashBlack() { elFlash.style.background = '#000'; elFlash.classList.remove('hidden'); }
-function flashWhite() { elFlash.style.background = '#fff'; elFlash.classList.remove('hidden'); }
-function flashHide()  { elFlash.classList.add('hidden'); }
 const elDebug = document.getElementById('debug-info');
 const elSpeech = document.getElementById('speech-bubble');
 const elSpeechText = document.getElementById('speech-text');
@@ -388,7 +377,6 @@ imgBlaster.src = "";
 let blasterCanvas = null;
 
 const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, z: false };
-window.keys = keys; // ★スマホ用バーチャルパッドから操作できるように公開
 window.addEventListener('keydown', e => {
     if (keys.hasOwnProperty(e.key)) { keys[e.key] = true; e.preventDefault(); }
     if (e.key.toLowerCase() === 'z') { keys.z = true; }
@@ -404,8 +392,7 @@ window.addEventListener('keyup', e => {
 //   2 = 演出中（ボタン押せない）
 //   4 = 慈悲トラップ
 const State = {
-    hp: 184, maxHp: 184, kr: 0, def: 3, frameCount: 0, attacks: [],
-    arenaW: 600, arenaH: 400,
+    hp: 184, maxHp: 184, kr: 0, frameCount: 0, attacks: [],
     turnIndex: 0, patternTimer: 0, inTransition: false,
     turnState: 0, trapTimer: 0, postAttackTimer: 0,
     patternDone: false, items: 8, isGameOver: false, screenShake: 0,
@@ -502,9 +489,9 @@ class Player {
         this.gravityDir = 'DOWN';
 
         // 物理定数
-        this.jumpForce = -4.0;        // ジャンプ初速（控えめ）
-        this.gravityNormal = 0.015;   // 通常重力（ふわふわ）
-        this.gravityFall = 0.025;     // 落下重力（ゆっくり）
+        this.jumpForce = -4.2;        // ジャンプ初速
+        this.gravityNormal = 0.05;    // 通常重力（超ふわふわ）
+        this.gravityFall = 0.07;      // 落下重力（ゆったり）
         this.bounceCoeff = 0;         // バウンド無効化（反動で避けられてしまうため）
 
         this.isJumping = false;
@@ -523,9 +510,9 @@ class Player {
         this.gravityBounce = true; // 重力攻撃→バウンド有効
         playSound('gravity');
         const F = 18;
-        if (dir === 'DOWN')  this.vy = F;
-        if (dir === 'UP')    this.vy = -F;
-        if (dir === 'LEFT')  this.vx = -F;
+        if (dir === 'DOWN') this.vy = F;
+        if (dir === 'UP') this.vy = -F;
+        if (dir === 'LEFT') this.vx = -F;
         if (dir === 'RIGHT') this.vx = F;
         State.screenShake = 12;
     }
@@ -638,9 +625,9 @@ class Player {
             if (keys.ArrowLeft) this.x -= this.speed;
             if (keys.ArrowRight) this.x += this.speed;
         } else {
-            if      (this.gravityDir === 'DOWN')  this._updateDown();
-            else if (this.gravityDir === 'UP')    this._updateUp();
-            else if (this.gravityDir === 'LEFT')  this._updateLeft();
+            if (this.gravityDir === 'DOWN') this._updateDown();
+            else if (this.gravityDir === 'UP') this._updateUp();
+            else if (this.gravityDir === 'LEFT') this._updateLeft();
             else if (this.gravityDir === 'RIGHT') this._updateRight();
         }
         this.x = Math.max(0, Math.min(cW - this.w, this.x));
@@ -663,16 +650,15 @@ const p = new Player();
 
 function applyDamage(amount) {
     if (State.hp <= 0 || State.isGameOver) return;
-    // ★DEFでダメージ軽減（最小1）
-    const dmg = Math.max(1, amount - State.def);
 
     if (State.hp > 1) {
-        State.hp -= dmg;
-        if (State.hp < 1) State.hp = 1;
-        State.kr = Math.min(State.kr + dmg, State.maxHp - State.hp);
+        // ★通常：HP-1＋KR+1
+        State.hp -= 1;
+        State.kr = Math.min(State.kr + 1, State.maxHp - State.hp);
     } else {
+        // ★HP1のとき：KRがあればKR-1、なければHP-1（ゲームオーバー）
         if (State.kr > 0) {
-            State.kr = Math.max(0, State.kr - dmg);
+            State.kr -= 1;
         } else {
             State.hp = 0;
             State.isGameOver = true;
@@ -695,12 +681,8 @@ function updateUI() {
     if (State.hp <= 0) State.hp = 0;
     elHpText.textContent = `${State.hp} / ${State.maxHp}`;
     elHpFill.style.width = `${(State.hp / State.maxHp) * 100}%`;
-    // ★KRバー：HPバーの右端から始まる（ピンク）
-    elKrFill.style.left  = `${(State.hp / State.maxHp) * 100}%`;
+    elKrFill.style.left = `${(State.hp / State.maxHp) * 100}%`;
     elKrFill.style.width = `${(State.kr / State.maxHp) * 100}%`;
-    // ★KR数値を更新
-    const krTextEl = document.getElementById('kr-text');
-    if (krTextEl) krTextEl.textContent = State.kr;
     elDebug.textContent = `Turn: ${State.turnIndex + 1}/21 | State: ${State.turnState} | Objs: ${State.attacks.length}`;
     elItemBtn.textContent = `ITEM (${State.items})`;
     const isMenu = (State.turnState === 0);
@@ -787,87 +769,87 @@ class GasterBlaster {
 
         // 通常（口閉じ）のドットデータ
         const dotsNormal = [
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,1,0,0,0,0,1,1,1,1,1,0,0,0,0,1,0,0,0,0],
-            [0,0,0,0,1,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,1,0,0,0],
-            [0,0,0,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,0,0],
-            [0,0,0,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,0,0],
-            [0,0,0,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,0],
-            [0,0,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,0],
-            [0,0,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,0],
-            [0,0,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,0],
-            [0,0,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,0],
-            [0,0,1,1,0,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,0,1,1,0],
-            [0,0,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,0,0,1,1,1,1,0],
-            [0,0,0,1,1,1,0,0,0,1,1,1,0,1,1,1,0,0,0,1,1,1,0,0],
-            [0,0,0,1,1,0,0,1,1,0,1,1,0,1,1,0,1,1,0,1,0,1,0,0],
-            [0,0,0,1,1,0,0,1,1,1,1,1,0,1,1,1,1,1,0,1,0,1,0,0],
-            [0,0,0,1,0,1,1,1,1,1,1,1,0,1,1,0,1,1,1,1,0,1,0,0],
-            [0,0,0,0,1,0,1,1,1,0,1,1,0,1,1,0,1,1,1,0,1,0,0,0],
-            [0,0,0,0,1,0,1,1,1,1,1,1,0,1,1,1,1,1,1,0,1,0,0,0],
-            [0,0,0,0,1,0,0,1,1,1,1,0,0,0,1,1,1,1,1,0,1,0,0,0],
-            [0,0,1,0,1,0,0,1,1,1,1,0,0,0,1,1,1,1,1,0,1,0,1,0],
-            [0,0,0,1,1,1,0,1,1,1,1,0,0,0,1,1,1,1,0,1,1,1,0,0],
-            [0,0,0,1,1,1,1,0,1,1,1,0,0,0,1,1,1,0,1,1,1,1,0,0],
-            [0,0,0,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,1,1,1,0,0],
-            [0,0,0,0,1,1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,0,0,0],
-            [0,0,0,0,1,1,1,0,1,0,0,1,0,1,0,0,1,0,1,1,1,0,0,0],
-            [0,0,0,0,0,1,1,1,1,0,0,1,0,1,0,0,1,1,1,1,0,0,0,0],
-            [0,0,0,0,0,0,0,1,1,0,0,1,0,1,0,0,1,1,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,1,1,0,1,1,1,0,1,1,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0],
+            [0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0],
+            [0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0],
+            [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+            [0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0],
+            [0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0],
+            [0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0],
+            [0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0],
+            [0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0],
+            [0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0],
+            [0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0],
+            [0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0],
+            [0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0],
+            [0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0],
+            [0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0],
+            [0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0],
+            [0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0],
+            [0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         ];
 
         // ★FIREフェーズ：口が大きく開いたドットデータ
         const dotsOpen = [
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,1,0,0,0,0,1,1,1,1,1,0,0,0,0,1,0,0,0,0],
-            [0,0,0,0,1,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,1,0,0,0],
-            [0,0,0,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,0,0],
-            [0,0,0,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,0,0],
-            [0,0,0,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,0],
-            [0,0,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,0],
-            [0,0,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,0],
-            [0,0,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,0],
-            [0,0,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,0],
-            [0,0,1,1,0,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,0,1,1,0],
-            [0,0,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,0,0,1,1,1,1,0],
-            [0,0,0,1,1,1,0,0,0,1,1,1,0,1,1,1,0,0,0,1,1,1,0,0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0],
+            [0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0],
+            [0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0],
+            [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+            [0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0],
+            [0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0],
+            [0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0],
             // 口が開いた部分（行17以降を変更）
-            [0,0,0,1,1,0,0,1,0,0,1,1,0,1,1,0,0,1,0,1,0,1,0,0],
-            [0,0,0,1,1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,0,1,0,0],
-            [0,0,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,0,0],
-            [0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0],
-            [0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0],
-            [0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0],
-            [0,0,1,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,1,0,1,0],
-            [0,0,0,1,1,1,0,0,0,0,1,0,0,1,0,0,0,0,0,1,1,1,0,0],
-            [0,0,0,1,1,1,1,0,0,0,0,1,1,0,0,0,0,0,1,1,1,1,0,0],
-            [0,0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0,0,1,1,1,1,0,0],
-            [0,0,0,0,1,1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,0,0,0],
-            [0,0,0,0,1,1,1,0,1,0,0,1,0,1,0,0,1,0,1,1,1,0,0,0],
-            [0,0,0,0,0,1,1,1,1,0,0,1,0,1,0,0,1,1,1,1,0,0,0,0],
-            [0,0,0,0,0,0,0,1,1,0,0,1,0,1,0,0,1,1,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,1,1,0,1,1,1,0,1,1,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0],
+            [0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0],
+            [0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0],
+            [0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+            [0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0],
+            [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0],
+            [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0],
+            [0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0],
+            [0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0],
+            [0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         ];
 
         // フェーズに応じてドットを切り替え
@@ -882,8 +864,8 @@ class GasterBlaster {
         const eyeColor = this.phase === 'LOCK'
             ? `rgba(255,50,50,${0.85 + Math.sin(this.timer * 0.5) * 0.15})`
             : this.phase === 'FIRE'
-            ? `rgba(255,80,80,0.95)` // FIREで目が赤く光る
-            : 'rgba(210,240,255,0.95)';
+                ? `rgba(255,80,80,0.95)` // FIREで目が赤く光る
+                : 'rgba(210,240,255,0.95)';
 
         ctx.fillStyle = '#ffffff';
         for (let row = 0; row < ROWS; row++) {
@@ -900,14 +882,14 @@ class GasterBlaster {
         }
 
         // 目の穴（黒）
-        [[3,14],[4,14],[3,15],[4,15],[3,16],[4,16],
-         [19,14],[20,14],[19,15],[20,15],[19,16],[20,16]].forEach(([c,r]) => {
+        [[3, 14], [4, 14], [3, 15], [4, 15], [3, 16], [4, 16],
+        [19, 14], [20, 14], [19, 15], [20, 15], [19, 16], [20, 16]].forEach(([c, r]) => {
             ctx.fillRect(offX + c * u, offY + r * u, u + 0.5, u + 0.5);
         });
 
         // 目の光
         ctx.fillStyle = eyeColor;
-        [[3,15],[19,15]].forEach(([c,r]) => {
+        [[3, 15], [19, 15]].forEach(([c, r]) => {
             ctx.fillRect(offX + c * u, offY + r * u, u + 0.5, u + 0.5);
         });
         ctx.restore();
@@ -977,7 +959,7 @@ const Patterns = [];
 // Turn 1: ゆっくり低い骨のみ（簡単）
 Patterns.push((t) => {
     if (t === 0) { p.isBlue = true; p.gravityDir = 'DOWN'; }
-    if (t % 150 === 0 && t < 700) spawnBone(W+10, H-50, 12, 50, -1.0, 0, false);
+    if (t % 150 === 0 && t < 700) spawnBone(W + 10, H - 50, 12, 50, -1.0, 0, false);
     return t > 900;
 });
 
@@ -986,18 +968,18 @@ Patterns.push((t) => {
     if (t === 0) { p.isBlue = true; p.gravityDir = 'DOWN'; }
 
     // ★地面ギリギリを這う低い骨（高さ20px・ジャンプしないと絶対当たる）
-    if (t === 60)  spawnBone(W+10, H-20, 12, 20, -1.2, 0, false);
-    if (t === 180) spawnBone(W+10, H-20, 12, 20, -1.2, 0, false);
-    if (t === 300) spawnBone(W+10, H-20, 12, 20, -1.2, 0, false);
+    if (t === 60) spawnBone(W + 10, H - 20, 12, 20, -1.2, 0, false);
+    if (t === 180) spawnBone(W + 10, H - 20, 12, 20, -1.2, 0, false);
+    if (t === 300) spawnBone(W + 10, H - 20, 12, 20, -1.2, 0, false);
 
     // ★少し間を開けて2連続（タイミングが難しい）
-    if (t === 460) spawnBone(W+10, H-20, 12, 20, -1.3, 0, false);
-    if (t === 540) spawnBone(W+10, H-20, 12, 20, -1.3, 0, false);
+    if (t === 460) spawnBone(W + 10, H - 20, 12, 20, -1.3, 0, false);
+    if (t === 540) spawnBone(W + 10, H - 20, 12, 20, -1.3, 0, false);
 
     // ★最後に3連続（本家っぽい）
-    if (t === 700) spawnBone(W+10, H-20, 12, 20, -1.4, 0, false);
-    if (t === 760) spawnBone(W+10, H-20, 12, 20, -1.4, 0, false);
-    if (t === 820) spawnBone(W+10, H-20, 12, 20, -1.4, 0, false);
+    if (t === 700) spawnBone(W + 10, H - 20, 12, 20, -1.4, 0, false);
+    if (t === 760) spawnBone(W + 10, H - 20, 12, 20, -1.4, 0, false);
+    if (t === 820) spawnBone(W + 10, H - 20, 12, 20, -1.4, 0, false);
 
     return t > 1050;
 });
@@ -1005,58 +987,58 @@ Patterns.push((t) => {
 // Turn 3: 低い骨と高い骨が交互（ゆっくり）
 Patterns.push((t) => {
     if (t === 0) { p.isBlue = true; p.gravityDir = 'DOWN'; }
-    if (t % 180 === 0 && t < 800) spawnBone(W+10, H-50, 12, 50, -0.8, 0, false);
-    if (t % 180 === 90 && t < 800) spawnBone(W+10, 0, 12, H-70, -0.8, 0, false);
+    if (t % 180 === 0 && t < 800) spawnBone(W + 10, H - 50, 12, 50, -0.8, 0, false);
+    if (t % 180 === 90 && t < 800) spawnBone(W + 10, 0, 12, H - 70, -0.8, 0, false);
     return t > 1000;
 });
 
 // Turn 4: 左右から交互（ゆっくり）
 Patterns.push((t) => {
     if (t === 0) { p.isBlue = true; p.gravityDir = 'DOWN'; }
-    if (t % 180 === 0 && t < 800) spawnBone(W+10, H-50, 12, 50, -0.7, 0, false);
-    if (t % 180 === 90 && t < 800) spawnBone(-20, H-50, 12, 50, 0.7, 0, false);
+    if (t % 180 === 0 && t < 800) spawnBone(W + 10, H - 50, 12, 50, -0.7, 0, false);
+    if (t % 180 === 90 && t < 800) spawnBone(-20, H - 50, 12, 50, 0.7, 0, false);
     return t > 1000;
 });
 
 // Turn 5: 青骨→白骨（ゆっくり）
 Patterns.push((t) => {
     if (t === 0) { p.isBlue = true; p.gravityDir = 'DOWN'; }
-    if (t === 80)  spawnBone(W+10, H-65, 12, 65, -1.1, 0, true);
-    if (t === 280) spawnBone(W+10, H-50, 12, 50, -1.1, 0, false);
-    if (t === 450) spawnBone(-20,  H-65, 12, 65,  1.1, 0, true);
-    if (t === 650) spawnBone(-20,  H-50, 12, 50,  1.1, 0, false);
+    if (t === 80) spawnBone(W + 10, H - 65, 12, 65, -1.1, 0, true);
+    if (t === 280) spawnBone(W + 10, H - 50, 12, 50, -1.1, 0, false);
+    if (t === 450) spawnBone(-20, H - 65, 12, 65, 1.1, 0, true);
+    if (t === 650) spawnBone(-20, H - 50, 12, 50, 1.1, 0, false);
     return t > 900;
 });
 
 // Turn 6: 骨＋ブラスター1発（予告たっぷり）
 Patterns.push((t) => {
     if (t === 0) { p.isBlue = true; p.gravityDir = 'DOWN'; }
-    if (t % 150 === 0 && t < 700) spawnBone(W+10, H-50, 12, 50, -1.1, 0, false);
-    if (t === 350) spawnBlaster(W*0.15, H*0.15, null, 1, 180, 50, 40);
+    if (t % 150 === 0 && t < 700) spawnBone(W + 10, H - 50, 12, 50, -1.1, 0, false);
+    if (t === 350) spawnBlaster(W * 0.15, H * 0.15, null, 1, 180, 50, 40);
     return t > 1000;
 });
 
 // Turn 7: ブラスター2秒に1発・細い
 Patterns.push((t) => {
     if (t === 0) { p.isBlue = true; p.gravityDir = 'DOWN'; }
-    if (t === 30)  spawnBlaster(W*0.1, H*0.1, null, 0.8, 60, 30, 35);
-    if (t === 150) spawnBlaster(W*0.9, H*0.9, null, 0.8, 60, 30, 35);
-    if (t === 270) spawnBlaster(W*0.9, H*0.1, null, 0.8, 60, 30, 35);
-    if (t === 390) spawnBlaster(W*0.1, H*0.9, null, 0.8, 60, 30, 35);
-    if (t === 510) spawnBlaster(W*0.5, H*0.05, null, 0.8, 60, 30, 35);
-    if (t === 630) spawnBlaster(W*0.05, H*0.5, null, 0.8, 60, 30, 35);
-    if (t === 750) spawnBlaster(W*0.95, H*0.5, null, 0.8, 60, 30, 35);
-    if (t === 870) spawnBlaster(W*0.5, H*0.95, null, 0.8, 60, 30, 35);
-    if (t === 990) spawnBlaster(W*0.2, H*0.2, null, 0.8, 60, 30, 35);
-    if (t === 1110) spawnBlaster(W*0.8, H*0.8, null, 0.8, 60, 30, 35);
+    if (t === 30) spawnBlaster(W * 0.1, H * 0.1, null, 0.8, 60, 30, 35);
+    if (t === 150) spawnBlaster(W * 0.9, H * 0.9, null, 0.8, 60, 30, 35);
+    if (t === 270) spawnBlaster(W * 0.9, H * 0.1, null, 0.8, 60, 30, 35);
+    if (t === 390) spawnBlaster(W * 0.1, H * 0.9, null, 0.8, 60, 30, 35);
+    if (t === 510) spawnBlaster(W * 0.5, H * 0.05, null, 0.8, 60, 30, 35);
+    if (t === 630) spawnBlaster(W * 0.05, H * 0.5, null, 0.8, 60, 30, 35);
+    if (t === 750) spawnBlaster(W * 0.95, H * 0.5, null, 0.8, 60, 30, 35);
+    if (t === 870) spawnBlaster(W * 0.5, H * 0.95, null, 0.8, 60, 30, 35);
+    if (t === 990) spawnBlaster(W * 0.2, H * 0.2, null, 0.8, 60, 30, 35);
+    if (t === 1110) spawnBlaster(W * 0.8, H * 0.8, null, 0.8, 60, 30, 35);
     return t > 1400;
 });
 
 // Turn 8: ゆっくり骨が続く
 Patterns.push((t) => {
     if (t === 0) { p.isBlue = true; p.gravityDir = 'DOWN'; }
-    if (t % 160 === 0 && t < 800) spawnBone(W+10, H-50, 12, 50, -0.9, 0, false);
-    if (t % 160 === 80 && t < 800) spawnBone(W+10, 0, 12, H-65, -0.9, 0, false);
+    if (t % 160 === 0 && t < 800) spawnBone(W + 10, H - 50, 12, 50, -0.9, 0, false);
+    if (t % 160 === 80 && t < 800) spawnBone(W + 10, 0, 12, H - 65, -0.9, 0, false);
     return t > 1000;
 });
 
@@ -1065,8 +1047,8 @@ Patterns.push((t) => {
     if (t === 0) p.isBlue = false;
     if (t % 120 === 0 && t < 700) {
         const gap = 100 + Math.random() * (H - 220);
-        spawnBone(W+10, 0, 12, gap - 40, -1.2, 0, false);
-        spawnBone(W+10, gap + 40, 12, H, -1.2, 0, false);
+        spawnBone(W + 10, 0, 12, gap - 40, -1.2, 0, false);
+        spawnBone(W + 10, gap + 40, 12, H, -1.2, 0, false);
     }
     return t > 900;
 });
@@ -1074,17 +1056,17 @@ Patterns.push((t) => {
 // Turn 10: 骨＋固定角度ブラスター（1発ずつ）
 Patterns.push((t) => {
     if (t === 0) { p.isBlue = true; p.gravityDir = 'DOWN'; }
-    if (t % 150 === 0 && t < 900) spawnBone(W+10, H-50, 12, 50, -1.2, 0, false);
-    if (t % 150 === 75 && t < 900) spawnBone(W+10, 0, 12, H-65, -1.2, 0, false);
+    if (t % 150 === 0 && t < 900) spawnBone(W + 10, H - 50, 12, 50, -1.2, 0, false);
+    if (t % 150 === 75 && t < 900) spawnBone(W + 10, 0, 12, H - 65, -1.2, 0, false);
     // 2秒に1発・細い（固定角度）
-    if (t === 100)  spawnBlaster(W*0.1, H*0.1, Math.PI*0.25, 0.8, 60, 30, 35);
-    if (t === 220)  spawnBlaster(W*0.9, H*0.9, Math.PI*1.25, 0.8, 60, 30, 35);
-    if (t === 340)  spawnBlaster(W*0.9, H*0.1, Math.PI*0.75, 0.8, 60, 30, 35);
-    if (t === 460)  spawnBlaster(W*0.1, H*0.9, Math.PI*1.75, 0.8, 60, 30, 35);
-    if (t === 580)  spawnBlaster(W*0.5, H*0.05, Math.PI*0.5, 0.8, 60, 30, 35);
-    if (t === 700)  spawnBlaster(W*0.05, H*0.5, 0, 0.8, 60, 30, 35);
-    if (t === 820)  spawnBlaster(W*0.95, H*0.5, Math.PI, 0.8, 60, 30, 35);
-    if (t === 940)  spawnBlaster(W*0.5, H*0.95, Math.PI*1.5, 0.8, 60, 30, 35);
+    if (t === 100) spawnBlaster(W * 0.1, H * 0.1, Math.PI * 0.25, 0.8, 60, 30, 35);
+    if (t === 220) spawnBlaster(W * 0.9, H * 0.9, Math.PI * 1.25, 0.8, 60, 30, 35);
+    if (t === 340) spawnBlaster(W * 0.9, H * 0.1, Math.PI * 0.75, 0.8, 60, 30, 35);
+    if (t === 460) spawnBlaster(W * 0.1, H * 0.9, Math.PI * 1.75, 0.8, 60, 30, 35);
+    if (t === 580) spawnBlaster(W * 0.5, H * 0.05, Math.PI * 0.5, 0.8, 60, 30, 35);
+    if (t === 700) spawnBlaster(W * 0.05, H * 0.5, 0, 0.8, 60, 30, 35);
+    if (t === 820) spawnBlaster(W * 0.95, H * 0.5, Math.PI, 0.8, 60, 30, 35);
+    if (t === 940) spawnBlaster(W * 0.5, H * 0.95, Math.PI * 1.5, 0.8, 60, 30, 35);
     return t > 1200;
 });
 
@@ -1093,33 +1075,33 @@ Patterns.push((t) => {
     if (t === 0) { p.isBlue = false; }
 
     // ★scale=1.0（小さめ）、lockTime=180（3秒の赤い予告線）
-    if (t === 30)  {
-        State.attacks.push(new GasterBlaster(-200, -200, null, 1.0, 80, 180, 40, 'normal', p.x+p.w/2, p.y+p.h/2));
-        State.attacks.push(new GasterBlaster(W+200, H+200, null, 1.0, 80, 180, 40, 'normal', p.x+p.w/2, p.y+p.h/2));
+    if (t === 30) {
+        State.attacks.push(new GasterBlaster(-200, -200, null, 1.0, 80, 180, 40, 'normal', p.x + p.w / 2, p.y + p.h / 2));
+        State.attacks.push(new GasterBlaster(W + 200, H + 200, null, 1.0, 80, 180, 40, 'normal', p.x + p.w / 2, p.y + p.h / 2));
     }
     if (t === 220) {
-        State.attacks.push(new GasterBlaster(W+200, -200, null, 1.0, 80, 180, 40, 'normal', p.x+p.w/2, p.y+p.h/2));
-        State.attacks.push(new GasterBlaster(-200, H+200, null, 1.0, 80, 180, 40, 'normal', p.x+p.w/2, p.y+p.h/2));
+        State.attacks.push(new GasterBlaster(W + 200, -200, null, 1.0, 80, 180, 40, 'normal', p.x + p.w / 2, p.y + p.h / 2));
+        State.attacks.push(new GasterBlaster(-200, H + 200, null, 1.0, 80, 180, 40, 'normal', p.x + p.w / 2, p.y + p.h / 2));
     }
     if (t === 410) {
-        State.attacks.push(new GasterBlaster(-200, -200, null, 1.0, 80, 180, 40, 'normal', p.x+p.w/2, p.y+p.h/2));
-        State.attacks.push(new GasterBlaster(W+200, H+200, null, 1.0, 80, 180, 40, 'normal', p.x+p.w/2, p.y+p.h/2));
-        State.attacks.push(new GasterBlaster(W+200, -200, null, 1.0, 80, 180, 40, 'normal', p.x+p.w/2, p.y+p.h/2));
-        State.attacks.push(new GasterBlaster(-200, H+200, null, 1.0, 80, 180, 40, 'normal', p.x+p.w/2, p.y+p.h/2));
+        State.attacks.push(new GasterBlaster(-200, -200, null, 1.0, 80, 180, 40, 'normal', p.x + p.w / 2, p.y + p.h / 2));
+        State.attacks.push(new GasterBlaster(W + 200, H + 200, null, 1.0, 80, 180, 40, 'normal', p.x + p.w / 2, p.y + p.h / 2));
+        State.attacks.push(new GasterBlaster(W + 200, -200, null, 1.0, 80, 180, 40, 'normal', p.x + p.w / 2, p.y + p.h / 2));
+        State.attacks.push(new GasterBlaster(-200, H + 200, null, 1.0, 80, 180, 40, 'normal', p.x + p.w / 2, p.y + p.h / 2));
     }
     if (t === 620) {
-        State.attacks.push(new GasterBlaster(-200, H/2, null, 1.0, 80, 180, 40, 'normal', p.x+p.w/2, p.y+p.h/2));
-        State.attacks.push(new GasterBlaster(W+200, H/2, null, 1.0, 80, 180, 40, 'normal', p.x+p.w/2, p.y+p.h/2));
-        State.attacks.push(new GasterBlaster(W/2, -200, null, 1.0, 80, 180, 40, 'normal', p.x+p.w/2, p.y+p.h/2));
-        State.attacks.push(new GasterBlaster(W/2, H+200, null, 1.0, 80, 180, 40, 'normal', p.x+p.w/2, p.y+p.h/2));
+        State.attacks.push(new GasterBlaster(-200, H / 2, null, 1.0, 80, 180, 40, 'normal', p.x + p.w / 2, p.y + p.h / 2));
+        State.attacks.push(new GasterBlaster(W + 200, H / 2, null, 1.0, 80, 180, 40, 'normal', p.x + p.w / 2, p.y + p.h / 2));
+        State.attacks.push(new GasterBlaster(W / 2, -200, null, 1.0, 80, 180, 40, 'normal', p.x + p.w / 2, p.y + p.h / 2));
+        State.attacks.push(new GasterBlaster(W / 2, H + 200, null, 1.0, 80, 180, 40, 'normal', p.x + p.w / 2, p.y + p.h / 2));
     }
     if (t === 830) {
-        State.attacks.push(new GasterBlaster(-200, -200, null, 1.0, 80, 180, 40, 'normal', p.x+p.w/2, p.y+p.h/2));
-        State.attacks.push(new GasterBlaster(W+200, -200, null, 1.0, 80, 180, 40, 'normal', p.x+p.w/2, p.y+p.h/2));
-        State.attacks.push(new GasterBlaster(W+200, H+200, null, 1.0, 80, 180, 40, 'normal', p.x+p.w/2, p.y+p.h/2));
-        State.attacks.push(new GasterBlaster(-200, H+200, null, 1.0, 80, 180, 40, 'normal', p.x+p.w/2, p.y+p.h/2));
-        State.attacks.push(new GasterBlaster(-200, H/2, null, 1.0, 80, 180, 40, 'normal', p.x+p.w/2, p.y+p.h/2));
-        State.attacks.push(new GasterBlaster(W+200, H/2, null, 1.0, 80, 180, 40, 'normal', p.x+p.w/2, p.y+p.h/2));
+        State.attacks.push(new GasterBlaster(-200, -200, null, 1.0, 80, 180, 40, 'normal', p.x + p.w / 2, p.y + p.h / 2));
+        State.attacks.push(new GasterBlaster(W + 200, -200, null, 1.0, 80, 180, 40, 'normal', p.x + p.w / 2, p.y + p.h / 2));
+        State.attacks.push(new GasterBlaster(W + 200, H + 200, null, 1.0, 80, 180, 40, 'normal', p.x + p.w / 2, p.y + p.h / 2));
+        State.attacks.push(new GasterBlaster(-200, H + 200, null, 1.0, 80, 180, 40, 'normal', p.x + p.w / 2, p.y + p.h / 2));
+        State.attacks.push(new GasterBlaster(-200, H / 2, null, 1.0, 80, 180, 40, 'normal', p.x + p.w / 2, p.y + p.h / 2));
+        State.attacks.push(new GasterBlaster(W + 200, H / 2, null, 1.0, 80, 180, 40, 'normal', p.x + p.w / 2, p.y + p.h / 2));
     }
 
     // 攻撃終了後に慈悲セリフ
@@ -1137,10 +1119,10 @@ Patterns.push((t) => {
         p.isBlue = true; p.gravityDir = 'DOWN';
         State.attacks = [];
         // 画面を暗転
-        flashBlack();
+        document.getElementById('gameCanvas').style.filter = 'brightness(0)';
     }
     if (t === 60) {
-        flashHide();
+        document.getElementById('gameCanvas').style.filter = 'none';
         showMessage("…やれやれ。<br>まあまあ やるじゃないか。");
     }
     if (t === 180) {
@@ -1154,24 +1136,24 @@ Patterns.push((t) => {
     }
     if (t === 620) {
         hideMessage();
-        flashBlack();
+        document.getElementById('gameCanvas').style.filter = 'brightness(0)';
     }
     if (t === 680) {
-        flashHide();
+        document.getElementById('gameCanvas').style.filter = 'none';
         // ★本気演出：16方向ブラスターがチラ見せ（lockTime=0で発射しない）
         for (let i = 0; i < 16; i++) {
             const angle = (i / 16) * Math.PI * 2;
             const tx = W / 2 + Math.cos(angle) * 400;
             const ty = H / 2 + Math.sin(angle) * 300;
-            State.attacks.push(new GasterBlaster(tx, ty, null, 0.9, 60, 0, 0, 'normal', W/2, H/2));
+            State.attacks.push(new GasterBlaster(tx, ty, null, 0.9, 60, 0, 0, 'normal', W / 2, H / 2));
         }
     }
     if (t === 760) {
         State.attacks = [];
-        flashBlack();
+        document.getElementById('gameCanvas').style.filter = 'brightness(0)';
     }
     if (t === 820) {
-        flashHide();
+        document.getElementById('gameCanvas').style.filter = 'none';
         showMessage("…やれやれ。<br>じゃあ いくぞ。");
     }
     if (t === 960) hideMessage();
@@ -1181,17 +1163,17 @@ Patterns.push((t) => {
 // Turn 12: 重力操作＋骨（骨メイン）
 Patterns.push((t) => {
     if (t === 0) { p.isBlue = true; }
-    if (t === 30)  p.setGravityDir('LEFT');
-    if (t === 50)  spawnSlam('LEFT', 80, 30);
-    if (t === 80)  spawnBone(0, H*0.3, 30, 12, 1.5, 0, false);
-    if (t === 160) spawnBone(0, H*0.6, 30, 12, 1.5, 0, false);
+    if (t === 30) p.setGravityDir('LEFT');
+    if (t === 50) spawnSlam('LEFT', 80, 30);
+    if (t === 80) spawnBone(0, H * 0.3, 30, 12, 1.5, 0, false);
+    if (t === 160) spawnBone(0, H * 0.6, 30, 12, 1.5, 0, false);
     if (t === 250) p.setGravityDir('RIGHT');
     if (t === 270) spawnSlam('RIGHT', 80, 30);
-    if (t === 300) spawnBone(W, H*0.3, 30, 12, -1.5, 0, false);
-    if (t === 380) spawnBone(W, H*0.6, 30, 12, -1.5, 0, false);
+    if (t === 300) spawnBone(W, H * 0.3, 30, 12, -1.5, 0, false);
+    if (t === 380) spawnBone(W, H * 0.6, 30, 12, -1.5, 0, false);
     if (t === 460) p.setGravityDir('DOWN');
     // ブラスター固定・補助
-    if (t === 500) spawnBlaster(W*0.5, H*0.05, Math.PI/2, 1, 140, 35, 35);
+    if (t === 500) spawnBlaster(W * 0.5, H * 0.05, Math.PI / 2, 1, 140, 35, 35);
     return t > 750;
 });
 
@@ -1199,61 +1181,61 @@ Patterns.push((t) => {
 Patterns.push((t) => {
     if (t === 0) { p.isBlue = false; }
     // 2秒に1発ずつ追尾・細い
-    if (t === 30)   spawnBlaster(W*0.1, H*0.1, null, 0.8, 60, 30, 35);
-    if (t === 150)  spawnBlaster(W*0.9, H*0.9, null, 0.8, 60, 30, 35);
-    if (t === 270)  spawnBlaster(W*0.9, H*0.1, null, 0.8, 60, 30, 35);
-    if (t === 390)  spawnBlaster(W*0.1, H*0.9, null, 0.8, 60, 30, 35);
-    if (t === 510)  spawnBlaster(W*0.5, H*0.05, null, 0.8, 60, 30, 35);
-    if (t === 630)  spawnBlaster(W*0.05, H*0.5, null, 0.8, 60, 30, 35);
-    if (t === 750)  spawnBlaster(W*0.95, H*0.5, null, 0.8, 60, 30, 35);
-    if (t === 870)  spawnBlaster(W*0.5, H*0.95, null, 0.8, 60, 30, 35);
-    if (t === 990)  spawnBlaster(W*0.15, H*0.15, null, 0.8, 60, 30, 35);
-    if (t === 1110) spawnBlaster(W*0.85, H*0.85, null, 0.8, 60, 30, 35);
-    if (t === 1230) spawnBlaster(W*0.5, H*0.5, null, 0.8, 60, 30, 35);
+    if (t === 30) spawnBlaster(W * 0.1, H * 0.1, null, 0.8, 60, 30, 35);
+    if (t === 150) spawnBlaster(W * 0.9, H * 0.9, null, 0.8, 60, 30, 35);
+    if (t === 270) spawnBlaster(W * 0.9, H * 0.1, null, 0.8, 60, 30, 35);
+    if (t === 390) spawnBlaster(W * 0.1, H * 0.9, null, 0.8, 60, 30, 35);
+    if (t === 510) spawnBlaster(W * 0.5, H * 0.05, null, 0.8, 60, 30, 35);
+    if (t === 630) spawnBlaster(W * 0.05, H * 0.5, null, 0.8, 60, 30, 35);
+    if (t === 750) spawnBlaster(W * 0.95, H * 0.5, null, 0.8, 60, 30, 35);
+    if (t === 870) spawnBlaster(W * 0.5, H * 0.95, null, 0.8, 60, 30, 35);
+    if (t === 990) spawnBlaster(W * 0.15, H * 0.15, null, 0.8, 60, 30, 35);
+    if (t === 1110) spawnBlaster(W * 0.85, H * 0.85, null, 0.8, 60, 30, 35);
+    if (t === 1230) spawnBlaster(W * 0.5, H * 0.5, null, 0.8, 60, 30, 35);
     return t > 1500;
 });
 
 // Turn 14: 重力上下＋骨＋ブラスター固定補助
 Patterns.push((t) => {
     if (t === 0) p.isBlue = true;
-    if (t === 50)  p.setGravityDir('UP');
-    if (t === 70)  spawnSlam('UP', 80, 30);
-    if (t === 100) { spawnBone(W+10, 0, 12, H*0.25, -1.4, 0, false); spawnBone(-20, 0, 12, H*0.25, 1.4, 0, false); }
+    if (t === 50) p.setGravityDir('UP');
+    if (t === 70) spawnSlam('UP', 80, 30);
+    if (t === 100) { spawnBone(W + 10, 0, 12, H * 0.25, -1.4, 0, false); spawnBone(-20, 0, 12, H * 0.25, 1.4, 0, false); }
     if (t === 200) { p.setGravityDir('DOWN'); spawnSlam('DOWN', 80, 50); }
-    if (t === 250) { spawnBone(W+10, H*0.75, 12, H*0.25, -1.4, 0, false); spawnBone(-20, H*0.75, 12, H*0.25, 1.4, 0, false); }
+    if (t === 250) { spawnBone(W + 10, H * 0.75, 12, H * 0.25, -1.4, 0, false); spawnBone(-20, H * 0.75, 12, H * 0.25, 1.4, 0, false); }
     // ブラスター固定・縦に走る
-    if (t === 380) spawnBlaster(W*0.3, H*0.05, Math.PI/2, 1, 140, 35, 35);
-    if (t === 380) spawnBlaster(W*0.7, H*0.05, Math.PI/2, 1, 140, 35, 35);
+    if (t === 380) spawnBlaster(W * 0.3, H * 0.05, Math.PI / 2, 1, 140, 35, 35);
+    if (t === 380) spawnBlaster(W * 0.7, H * 0.05, Math.PI / 2, 1, 140, 35, 35);
     return t > 650;
 });
 
 // Turn 15: 暗転＋骨メイン（ブラスター固定補助）
 Patterns.push((t) => {
     if (t === 0) { p.isBlue = true; p.gravityDir = 'DOWN'; }
-    if (t === 50)  { flashBlack(); }
+    if (t === 50) { document.getElementById('gameCanvas').style.filter = 'brightness(0)'; }
     if (t === 100) {
-        flashHide();
-        spawnBone(W+10, H-50, 12, 50, -1.5, 0, false);
-        spawnBone(-20, H-50, 12, 50, 1.5, 0, false);
+        document.getElementById('gameCanvas').style.filter = 'none';
+        spawnBone(W + 10, H - 50, 12, 50, -1.5, 0, false);
+        spawnBone(-20, H - 50, 12, 50, 1.5, 0, false);
         // ブラスター固定・上から
-        spawnBlaster(W*0.5, H*0.05, Math.PI/2, 1.2, 140, 35, 35);
+        spawnBlaster(W * 0.5, H * 0.05, Math.PI / 2, 1.2, 140, 35, 35);
     }
-    if (t % 100 === 0 && t > 150 && t < 800) spawnBone(W+10, H-50, 12, 50, -1.5, 0, false);
-    if (t % 100 === 50 && t > 150 && t < 800) spawnBone(W+10, 0, 12, H-60, -1.5, 0, false);
-    if (t === 450) { flashBlack(); }
+    if (t % 100 === 0 && t > 150 && t < 800) spawnBone(W + 10, H - 50, 12, 50, -1.5, 0, false);
+    if (t % 100 === 50 && t > 150 && t < 800) spawnBone(W + 10, 0, 12, H - 60, -1.5, 0, false);
+    if (t === 450) { document.getElementById('gameCanvas').style.filter = 'brightness(0)'; }
     if (t === 500) {
-        flashHide();
-        spawnBone(W+10, H-50, 12, 50, -1.5, 0, false);
-        spawnBone(-20, H-50, 12, 50, 1.5, 0, false);
-        spawnBlaster(W*0.5, H*0.95, -Math.PI/2, 1.2, 140, 35, 35);
+        document.getElementById('gameCanvas').style.filter = 'none';
+        spawnBone(W + 10, H - 50, 12, 50, -1.5, 0, false);
+        spawnBone(-20, H - 50, 12, 50, 1.5, 0, false);
+        spawnBlaster(W * 0.5, H * 0.95, -Math.PI / 2, 1.2, 140, 35, 35);
     }
-    if (t === 900) { flashBlack(); }
+    if (t === 900) { document.getElementById('gameCanvas').style.filter = 'brightness(0)'; }
     if (t === 950) {
-        flashHide();
-        spawnBone(W+10, H-50, 12, 50, -1.5, 0, false);
-        spawnBone(-20, H-50, 12, 50, 1.5, 0, false);
-        spawnBlaster(W*0.05, H*0.5, 0, 1.2, 140, 35, 35);
-        spawnBlaster(W*0.95, H*0.5, Math.PI, 1.2, 140, 35, 35);
+        document.getElementById('gameCanvas').style.filter = 'none';
+        spawnBone(W + 10, H - 50, 12, 50, -1.5, 0, false);
+        spawnBone(-20, H - 50, 12, 50, 1.5, 0, false);
+        spawnBlaster(W * 0.05, H * 0.5, 0, 1.2, 140, 35, 35);
+        spawnBlaster(W * 0.95, H * 0.5, Math.PI, 1.2, 140, 35, 35);
     }
     return t > 1400;
 });
@@ -1261,28 +1243,28 @@ Patterns.push((t) => {
 // Turn 16: 骨メイン＋ブラスター固定補助
 Patterns.push((t) => {
     if (t === 0) { p.isBlue = true; p.gravityDir = 'DOWN'; }
-    if (t % 140 === 0  && t < 1000) spawnBone(W+10, H-50, 12, 50, -1.0, 0, false);
-    if (t % 140 === 70 && t < 1000) spawnBone(W+10, 0, 12, H-60, -1.0, 0, false);
+    if (t % 140 === 0 && t < 1000) spawnBone(W + 10, H - 50, 12, 50, -1.0, 0, false);
+    if (t % 140 === 70 && t < 1000) spawnBone(W + 10, 0, 12, H - 60, -1.0, 0, false);
     // ブラスター固定・斜め補助
-    if (t === 200)  spawnBlaster(W*0.05, H*0.05, Math.PI/4, 1.2, 140, 35, 35);
-    if (t === 500)  spawnBlaster(W*0.95, H*0.05, Math.PI*3/4, 1.2, 140, 35, 35);
-    if (t === 800)  { spawnBlaster(W*0.05, H*0.95, -Math.PI/4, 1.2, 140, 35, 35); spawnBlaster(W*0.95, H*0.95, -Math.PI*3/4, 1.2, 140, 35, 35); }
+    if (t === 200) spawnBlaster(W * 0.05, H * 0.05, Math.PI / 4, 1.2, 140, 35, 35);
+    if (t === 500) spawnBlaster(W * 0.95, H * 0.05, Math.PI * 3 / 4, 1.2, 140, 35, 35);
+    if (t === 800) { spawnBlaster(W * 0.05, H * 0.95, -Math.PI / 4, 1.2, 140, 35, 35); spawnBlaster(W * 0.95, H * 0.95, -Math.PI * 3 / 4, 1.2, 140, 35, 35); }
     return t > 1300;
 });
 
 // Turn 17: 連続重力スラム＋骨メイン＋ブラスター固定補助
 Patterns.push((t) => {
     if (t === 0) p.isBlue = true;
-    if (t === 30)  { p.setGravityDir('LEFT');  spawnSlam('LEFT', 80, 25); }
-    if (t === 80)  { spawnBone(0, H*0.4, 30, 12, 1.6, 0, false); spawnBone(0, H*0.7, 30, 12, 1.6, 0, false); }
+    if (t === 30) { p.setGravityDir('LEFT'); spawnSlam('LEFT', 80, 25); }
+    if (t === 80) { spawnBone(0, H * 0.4, 30, 12, 1.6, 0, false); spawnBone(0, H * 0.7, 30, 12, 1.6, 0, false); }
     if (t === 200) { p.setGravityDir('RIGHT'); spawnSlam('RIGHT', 80, 25); }
-    if (t === 250) { spawnBone(W, H*0.4, 30, 12, -1.6, 0, false); spawnBone(W, H*0.7, 30, 12, -1.6, 0, false); }
-    if (t === 370) { p.setGravityDir('UP');    spawnSlam('UP', 80, 25); }
-    if (t === 420) { spawnBone(W+10, H-50, 12, 50, -1.6, 0, false); spawnBone(-20, H-50, 12, 50, 1.6, 0, false); }
-    if (t === 540) { p.setGravityDir('DOWN');  spawnSlam('DOWN', 80, 25); }
-    if (t === 590) { spawnBone(W+10, H-50, 12, 50, -1.6, 0, false); spawnBone(-20, H-50, 12, 50, 1.6, 0, false); }
+    if (t === 250) { spawnBone(W, H * 0.4, 30, 12, -1.6, 0, false); spawnBone(W, H * 0.7, 30, 12, -1.6, 0, false); }
+    if (t === 370) { p.setGravityDir('UP'); spawnSlam('UP', 80, 25); }
+    if (t === 420) { spawnBone(W + 10, H - 50, 12, 50, -1.6, 0, false); spawnBone(-20, H - 50, 12, 50, 1.6, 0, false); }
+    if (t === 540) { p.setGravityDir('DOWN'); spawnSlam('DOWN', 80, 25); }
+    if (t === 590) { spawnBone(W + 10, H - 50, 12, 50, -1.6, 0, false); spawnBone(-20, H - 50, 12, 50, 1.6, 0, false); }
     // ブラスター固定・補助
-    if (t === 650) spawnBlaster(W*0.5, H*0.05, Math.PI/2, 1, 140, 35, 35);
+    if (t === 650) spawnBlaster(W * 0.5, H * 0.05, Math.PI / 2, 1, 140, 35, 35);
     return t > 900;
 });
 
@@ -1292,14 +1274,14 @@ Patterns.push((t) => {
 
     // 四方から1発ずつポンポン出てくる（120フレーム間隔）
     const positions = [
-        [-100,-100], [W/2,-150], [W+100,-100], [W+150,H/2],
-        [W+100,H+100], [W/2,H+150], [-100,H+100], [-150,H/2],
-        [W*0.25,-150], [W*0.75,-150], [W+150,H*0.25], [W+150,H*0.75],
-        [W*0.75,H+150], [W*0.25,H+150], [-150,H*0.75], [-150,H*0.25],
+        [-100, -100], [W / 2, -150], [W + 100, -100], [W + 150, H / 2],
+        [W + 100, H + 100], [W / 2, H + 150], [-100, H + 100], [-150, H / 2],
+        [W * 0.25, -150], [W * 0.75, -150], [W + 150, H * 0.25], [W + 150, H * 0.75],
+        [W * 0.75, H + 150], [W * 0.25, H + 150], [-150, H * 0.75], [-150, H * 0.25],
     ];
     positions.forEach(([tx, ty], i) => {
         if (t === 30 + i * 120) {
-            State.attacks.push(new GasterBlaster(tx, ty, null, 0.5, 60, 30, 40, 'normal', p.x+p.w/2, p.y+p.h/2));
+            State.attacks.push(new GasterBlaster(tx, ty, null, 0.5, 60, 30, 40, 'normal', p.x + p.w / 2, p.y + p.h / 2));
         }
     });
 
@@ -1307,18 +1289,18 @@ Patterns.push((t) => {
 });
 Patterns.push((t) => {
     if (t === 0) p.isBlue = false;
-    if (t === 50)  spawnBlaster(W/2, H/2, Math.PI/2, 4.0, 160, 45, 55);
-    if (t === 100) spawnBlaster(W*0.1, H*0.5, 0, 2.0, 160, 45, 45);
-    if (t === 100) spawnBlaster(W*0.9, H*0.5, Math.PI, 2.0, 160, 45, 45);
-    if (t === 430) spawnBlaster(W/2, H/2, Math.PI/2, 3.5, 160, 45, 55);
-    if (t === 480) spawnBlaster(W*0.5, H*0.1, Math.PI/2, 2.0, 160, 45, 45);
-    if (t === 480) spawnBlaster(W*0.5, H*0.9, -Math.PI/2, 2.0, 160, 45, 45);
-    if (t === 810) spawnBlaster(W/2, H/2, Math.PI/2, 3.0, 160, 45, 55);
-    if (t === 860) spawnBlaster(W*0.1, H*0.1, Math.PI*0.25, 1.8, 160, 45, 45);
-    if (t === 860) spawnBlaster(W*0.9, H*0.9, Math.PI*1.25, 1.8, 160, 45, 45);
-    if (t === 1190)spawnBlaster(W*0.9, H*0.1, Math.PI*0.75, 1.8, 160, 45, 45);
-    if (t === 1190)spawnBlaster(W*0.1, H*0.9, -Math.PI*0.25, 1.8, 160, 45, 45);
-    if (t === 1190)spawnBlaster(W/2, H/2, Math.PI/2, 2.5, 160, 45, 55);
+    if (t === 50) spawnBlaster(W / 2, H / 2, Math.PI / 2, 4.0, 160, 45, 55);
+    if (t === 100) spawnBlaster(W * 0.1, H * 0.5, 0, 2.0, 160, 45, 45);
+    if (t === 100) spawnBlaster(W * 0.9, H * 0.5, Math.PI, 2.0, 160, 45, 45);
+    if (t === 430) spawnBlaster(W / 2, H / 2, Math.PI / 2, 3.5, 160, 45, 55);
+    if (t === 480) spawnBlaster(W * 0.5, H * 0.1, Math.PI / 2, 2.0, 160, 45, 45);
+    if (t === 480) spawnBlaster(W * 0.5, H * 0.9, -Math.PI / 2, 2.0, 160, 45, 45);
+    if (t === 810) spawnBlaster(W / 2, H / 2, Math.PI / 2, 3.0, 160, 45, 55);
+    if (t === 860) spawnBlaster(W * 0.1, H * 0.1, Math.PI * 0.25, 1.8, 160, 45, 45);
+    if (t === 860) spawnBlaster(W * 0.9, H * 0.9, Math.PI * 1.25, 1.8, 160, 45, 45);
+    if (t === 1190) spawnBlaster(W * 0.9, H * 0.1, Math.PI * 0.75, 1.8, 160, 45, 45);
+    if (t === 1190) spawnBlaster(W * 0.1, H * 0.9, -Math.PI * 0.25, 1.8, 160, 45, 45);
+    if (t === 1190) spawnBlaster(W / 2, H / 2, Math.PI / 2, 2.5, 160, 45, 55);
     return t > 1700;
 });
 Patterns.push((t) => {
@@ -1403,31 +1385,30 @@ Patterns.push((t) => {
     if (t === 150) hideMessage();
 
     // フェーズ1: 重力叩きつけのみ
-    if (t === 150) { p.setGravityDir('LEFT');  spawnSlam('LEFT', 40, 20); }
-    if (t === 220) { p.setGravityDir('UP');    spawnSlam('UP', 40, 20); }
+    if (t === 150) { p.setGravityDir('LEFT'); spawnSlam('LEFT', 40, 20); }
+    if (t === 220) { p.setGravityDir('UP'); spawnSlam('UP', 40, 20); }
     if (t === 290) { p.setGravityDir('RIGHT'); spawnSlam('RIGHT', 40, 20); }
-    if (t === 360) { p.setGravityDir('DOWN');  spawnSlam('DOWN', 40, 20); }
+    if (t === 360) { p.setGravityDir('DOWN'); spawnSlam('DOWN', 40, 20); }
 
     // フェーズ2: ブラスターのみ
     if (t === 500) p.isBlue = false;
     if (t > 550 && t % 120 === 0 && t < 950) {
-        spawnBlaster(W/4, 0, Math.PI/2, 1.5, 120, 20, 30);
-        spawnBlaster(W*3/4, H, -Math.PI/2, 1.5, 120, 20, 30);
+        spawnBlaster(W / 4, 0, Math.PI / 2, 1.5, 120, 20, 30);
+        spawnBlaster(W * 3 / 4, H, -Math.PI / 2, 1.5, 120, 20, 30);
     }
 
-    // フェーズ3: 洗濯機ブラスターのみ（★赤ソウル維持）
-    if (t === 1050) { p.resetPos(); p.isBlue = false; }
-    if (t > 1050 && t < 1900) p.isBlue = false; // ★常に赤ソウルを維持
+    // フェーズ3: 洗濯機ブラスターのみ
+    if (t === 1050) { p.resetPos(); p.isBlue = true; p.gravityDir = 'DOWN'; }
     if (t > 1100 && t % 60 === 0 && t < 1900) {
-        const a = t * 0.012, r = Math.min(W,H)/2 + 50;
-        const tx = W/2 + Math.cos(a)*r, ty = H/2 + Math.sin(a)*r;
-        spawnBlaster(tx, ty, Math.atan2(H/2-ty, W/2-tx), 0.8, 130, 30, 35);
+        const a = t * 0.012, r = Math.min(W, H) / 2 + 50;
+        const tx = W / 2 + Math.cos(a) * r, ty = H / 2 + Math.sin(a) * r;
+        spawnBlaster(tx, ty, Math.atan2(H / 2 - ty, W / 2 - tx), 0.5, 130, 30, 35);
     }
 
     // ★終了前にセリフ→本物スペシャルへの予告
-    if (t === 2000) { flashBlack(); }
+    if (t === 2000) { document.getElementById('gameCanvas').style.filter = 'brightness(0)'; }
     if (t === 2100) {
-        flashHide();
+        document.getElementById('gameCanvas').style.filter = 'none';
         p.isBlue = true; p.setGravityDir('DOWN');
         showMessage("ハァ... ハァ...<br>…やれやれ。");
     }
@@ -1443,35 +1424,34 @@ Patterns.push((t) => {
     if (t === 80) hideMessage();
 
     // 骨（ゆっくり・交互）
-    if (t % 120 === 0 && t > 80 && t < 600) spawnBone(W+10, H-50, 12, 50, -1.3, 0, false);
-    if (t % 120 === 60 && t > 80 && t < 600) spawnBone(W+10, 0, 12, H-60, -1.3, 0, false);
+    if (t % 120 === 0 && t > 80 && t < 600) spawnBone(W + 10, H - 50, 12, 50, -1.3, 0, false);
+    if (t % 120 === 60 && t > 80 && t < 600) spawnBone(W + 10, 0, 12, H - 60, -1.3, 0, false);
 
     // 重力4方向（警告時間長め）
-    if (t === 650)  { p.setGravityDir('LEFT');  spawnSlam('LEFT', 90, 25); }
-    if (t === 850)  { p.setGravityDir('UP');    spawnSlam('UP', 90, 25); }
+    if (t === 650) { p.setGravityDir('LEFT'); spawnSlam('LEFT', 90, 25); }
+    if (t === 850) { p.setGravityDir('UP'); spawnSlam('UP', 90, 25); }
     if (t === 1050) { p.setGravityDir('RIGHT'); spawnSlam('RIGHT', 90, 25); }
-    if (t === 1250) { p.setGravityDir('DOWN');  spawnSlam('DOWN', 90, 25); }
+    if (t === 1250) { p.setGravityDir('DOWN'); spawnSlam('DOWN', 90, 25); }
 
     // 4方向ブラスター1波（予告たっぷり）
     if (t === 1450) {
         p.isBlue = false;
-        const pos = [[-100,-100],[W+100,-100],[W+100,H+100],[-100,H+100]];
-        pos.forEach(([tx,ty]) => State.attacks.push(new GasterBlaster(tx,ty,null,0.8,200,50,40,'normal',p.x+p.w/2,p.y+p.h/2)));
+        const pos = [[-100, -100], [W + 100, -100], [W + 100, H + 100], [-100, H + 100]];
+        pos.forEach(([tx, ty]) => State.attacks.push(new GasterBlaster(tx, ty, null, 0.8, 200, 50, 40, 'normal', p.x + p.w / 2, p.y + p.h / 2)));
     }
 
     // 洗濯機ブラスター（ゆっくり・細い）
-    if (t === 1900) { p.resetPos(); p.isBlue = false; } // ★赤ソウル
-    if (t > 1900 && t < 2700) p.isBlue = false; // ★常に赤ソウルを維持
+    if (t === 1900) { p.resetPos(); p.isBlue = true; p.gravityDir = 'DOWN'; }
     if (t > 1950 && t % 70 === 0 && t < 2700) {
-        const a = t * 0.010, r = Math.min(W,H)/2 + 50;
-        const tx = W/2 + Math.cos(a)*r, ty = H/2 + Math.sin(a)*r;
-        spawnBlaster(tx, ty, Math.atan2(H/2-ty, W/2-tx), 0.8, 160, 40, 40);
+        const a = t * 0.010, r = Math.min(W, H) / 2 + 50;
+        const tx = W / 2 + Math.cos(a) * r, ty = H / 2 + Math.sin(a) * r;
+        spawnBlaster(tx, ty, Math.atan2(H / 2 - ty, W / 2 - tx), 0.5, 160, 40, 40);
     }
 
     // エンディング
-    if (t === 2800) { flashBlack(); }
+    if (t === 2800) { document.getElementById('gameCanvas').style.filter = 'brightness(0)'; }
     if (t === 3000) {
-        flashHide();
+        document.getElementById('gameCanvas').style.filter = 'none';
         showMessage("ハァ... ハァ...<br>…パピルス。 おれは 約束を 守れなかった。");
     }
     if (t === 3150) { hideMessage(); p.isBlue = true; p.setGravityDir('DOWN'); }
@@ -1483,28 +1463,28 @@ Patterns.push((t) => {
     if (t === 0) {
         p.isBlue = true; p.gravityDir = 'DOWN';
         State.attacks = [];
-        flashBlack();
+        document.getElementById('gameCanvas').style.filter = 'brightness(0)';
     }
     if (t === 90) {
-        flashHide();
+        document.getElementById('gameCanvas').style.filter = 'none';
         showMessage("ハァ... ハァ...<br>…まだ 終わって ないぞ。");
     }
     if (t === 240) showMessage("おれは… まだ<br>本当の力を 出してない。");
     if (t === 390) showMessage("…悪く思うなよ。<br>パピルス。");
-    if (t === 540) { hideMessage(); flashBlack(); }
+    if (t === 540) { hideMessage(); document.getElementById('gameCanvas').style.filter = 'brightness(0)'; }
     if (t === 600) {
-        flashHide();
+        document.getElementById('gameCanvas').style.filter = 'none';
         // 全方向ブラスターチラ見せ
         for (let i = 0; i < 16; i++) {
             const angle = (i / 16) * Math.PI * 2;
             State.attacks.push(new GasterBlaster(
-                W/2 + Math.cos(angle)*400, H/2 + Math.sin(angle)*300,
-                null, 1.2, 60, 0, 0, 'normal', W/2, H/2
+                W / 2 + Math.cos(angle) * 400, H / 2 + Math.sin(angle) * 300,
+                null, 1.2, 60, 0, 0, 'normal', W / 2, H / 2
             ));
         }
     }
-    if (t === 680) { State.attacks = []; flashBlack(); }
-    if (t === 740) { flashHide(); showMessage("いくぞ。"); }
+    if (t === 680) { State.attacks = []; document.getElementById('gameCanvas').style.filter = 'brightness(0)'; }
+    if (t === 740) { document.getElementById('gameCanvas').style.filter = 'none'; showMessage("いくぞ。"); }
     if (t === 860) { hideMessage(); }
     return t > 900;
 });
@@ -1512,67 +1492,67 @@ Patterns.push((t) => {
 // ★Phase2 Turn1: 骨の嵐（速い・Phase1より高速）
 Patterns.push((t) => {
     if (t === 0) { p.isBlue = true; p.gravityDir = 'DOWN'; }
-    if (t % 90 === 0 && t < 800) spawnBone(W+10, H-50, 12, 50, -1.4, 0, false);
-    if (t % 90 === 45 && t < 800) spawnBone(W+10, 0, 12, H-60, -1.4, 0, false);
-    if (t % 90 === 22 && t < 800) spawnBone(-20, H-50, 12, 50, 1.4, 0, false);
+    if (t % 60 === 0 && t < 700) spawnBone(W + 10, H - 50, 12, 50, -1.8, 0, false);
+    if (t % 60 === 30 && t < 700) spawnBone(W + 10, 0, 12, H - 60, -1.8, 0, false);
+    if (t % 60 === 15 && t < 700) spawnBone(-20, H - 50, 12, 50, 1.8, 0, false);
     return t > 900;
 });
 
 // ★Phase2 Turn2: 重力4方向連続＋骨
 Patterns.push((t) => {
     if (t === 0) { p.isBlue = true; }
-    if (t === 30)  { p.setGravityDir('LEFT');  spawnSlam('LEFT', 90, 25); }
-    if (t === 60)  spawnBone(0, H*0.4, 30, 12, 1.4, 0, false);
-    if (t === 220) { p.setGravityDir('UP');    spawnSlam('UP', 90, 25); }
-    if (t === 250) spawnBone(W*0.4, 0, 12, 30, 0, 1.4, false);
-    if (t === 410) { p.setGravityDir('RIGHT'); spawnSlam('RIGHT', 90, 25); }
-    if (t === 440) spawnBone(W, H*0.4, 30, 12, -1.4, 0, false);
-    if (t === 600) { p.setGravityDir('DOWN');  spawnSlam('DOWN', 90, 25); }
-    if (t === 600) spawnBlaster(W*0.2, H*0.2, null, 0.8, 60, 30, 35);
-    if (t === 700) spawnBlaster(W*0.8, H*0.8, null, 0.8, 60, 30, 35);
+    if (t === 30) { p.setGravityDir('LEFT'); spawnSlam('LEFT', 60, 25); }
+    if (t === 60) spawnBone(0, H * 0.4, 30, 12, 1.8, 0, false);
+    if (t === 190) { p.setGravityDir('UP'); spawnSlam('UP', 60, 25); }
+    if (t === 220) spawnBone(W * 0.4, 0, 12, 30, 0, 1.8, false);
+    if (t === 350) { p.setGravityDir('RIGHT'); spawnSlam('RIGHT', 60, 25); }
+    if (t === 380) spawnBone(W, H * 0.4, 30, 12, -1.8, 0, false);
+    if (t === 510) { p.setGravityDir('DOWN'); spawnSlam('DOWN', 60, 25); }
+    if (t === 600) spawnBlaster(W * 0.2, H * 0.2, null, 0.8, 60, 30, 35);
+    if (t === 700) spawnBlaster(W * 0.8, H * 0.8, null, 0.8, 60, 30, 35);
     return t > 900;
 });
 
 // ★Phase2 Turn3: 追尾ブラスター＋骨（複合・速い）
 Patterns.push((t) => {
     if (t === 0) p.isBlue = false;
-    if (t % 110 === 0 && t < 900) {
+    if (t % 80 === 0 && t < 800) {
         const gap = 60 + Math.random() * (H - 150);
-        spawnBone(W+10, 0, 12, gap-20, -1.4, 0, false);
-        spawnBone(W+10, gap+20, 12, H, -1.4, 0, false);
+        spawnBone(W + 10, 0, 12, gap - 20, -1.8, 0, false);
+        spawnBone(W + 10, gap + 20, 12, H, -1.8, 0, false);
     }
-    if (t === 60)  spawnBlaster(W*0.1, H*0.1, null, 0.8, 60, 30, 35);
-    if (t === 180) spawnBlaster(W*0.9, H*0.9, null, 0.8, 60, 30, 35);
-    if (t === 300) spawnBlaster(W*0.9, H*0.1, null, 0.8, 60, 30, 35);
-    if (t === 420) spawnBlaster(W*0.1, H*0.9, null, 0.8, 60, 30, 35);
-    if (t === 540) spawnBlaster(W*0.5, H*0.05, null, 0.8, 60, 30, 35);
-    if (t === 660) spawnBlaster(W*0.5, H*0.95, null, 0.8, 60, 30, 35);
+    if (t === 60) spawnBlaster(W * 0.1, H * 0.1, null, 0.8, 60, 30, 35);
+    if (t === 180) spawnBlaster(W * 0.9, H * 0.9, null, 0.8, 60, 30, 35);
+    if (t === 300) spawnBlaster(W * 0.9, H * 0.1, null, 0.8, 60, 30, 35);
+    if (t === 420) spawnBlaster(W * 0.1, H * 0.9, null, 0.8, 60, 30, 35);
+    if (t === 540) spawnBlaster(W * 0.5, H * 0.05, null, 0.8, 60, 30, 35);
+    if (t === 660) spawnBlaster(W * 0.5, H * 0.95, null, 0.8, 60, 30, 35);
     return t > 1000;
 });
 
 // ★Phase2 Turn4: 暗転＋全方向ブラスター連続
 Patterns.push((t) => {
     if (t === 0) p.isBlue = false;
-    if (t === 30)  { flashBlack(); }
-    if (t === 80)  {
-        flashHide();
-        spawnBlaster(W*0.1, H*0.1, null, 0.8, 60, 30, 35);
-        spawnBlaster(W*0.9, H*0.9, null, 0.8, 60, 30, 35);
+    if (t === 30) { document.getElementById('gameCanvas').style.filter = 'brightness(0)'; }
+    if (t === 80) {
+        document.getElementById('gameCanvas').style.filter = 'none';
+        spawnBlaster(W * 0.1, H * 0.1, null, 0.8, 60, 30, 35);
+        spawnBlaster(W * 0.9, H * 0.9, null, 0.8, 60, 30, 35);
     }
-    if (t === 280) { flashBlack(); }
+    if (t === 280) { document.getElementById('gameCanvas').style.filter = 'brightness(0)'; }
     if (t === 330) {
-        flashHide();
-        spawnBlaster(W*0.9, H*0.1, null, 0.8, 60, 30, 35);
-        spawnBlaster(W*0.1, H*0.9, null, 0.8, 60, 30, 35);
-        spawnBlaster(W*0.5, H*0.5, null, 0.8, 60, 30, 35);
+        document.getElementById('gameCanvas').style.filter = 'none';
+        spawnBlaster(W * 0.9, H * 0.1, null, 0.8, 60, 30, 35);
+        spawnBlaster(W * 0.1, H * 0.9, null, 0.8, 60, 30, 35);
+        spawnBlaster(W * 0.5, H * 0.5, null, 0.8, 60, 30, 35);
     }
-    if (t === 580) { flashBlack(); }
+    if (t === 580) { document.getElementById('gameCanvas').style.filter = 'brightness(0)'; }
     if (t === 630) {
-        flashHide();
-        spawnBlaster(W*0.2, H*0.2, null, 0.8, 60, 30, 35);
-        spawnBlaster(W*0.8, H*0.2, null, 0.8, 60, 30, 35);
-        spawnBlaster(W*0.2, H*0.8, null, 0.8, 60, 30, 35);
-        spawnBlaster(W*0.8, H*0.8, null, 0.8, 60, 30, 35);
+        document.getElementById('gameCanvas').style.filter = 'none';
+        spawnBlaster(W * 0.2, H * 0.2, null, 0.8, 60, 30, 35);
+        spawnBlaster(W * 0.8, H * 0.2, null, 0.8, 60, 30, 35);
+        spawnBlaster(W * 0.2, H * 0.8, null, 0.8, 60, 30, 35);
+        spawnBlaster(W * 0.8, H * 0.8, null, 0.8, 60, 30, 35);
     }
     return t > 1000;
 });
@@ -1581,14 +1561,14 @@ Patterns.push((t) => {
 Patterns.push((t) => {
     if (t === 0) p.isBlue = false;
     const positions = [
-        [-100,-100],[W/2,-150],[W+100,-100],[W+150,H/2],
-        [W+100,H+100],[W/2,H+150],[-100,H+100],[-150,H/2],
-        [W*0.25,-150],[W*0.75,-150],[W+150,H*0.25],[W+150,H*0.75],
-        [W*0.75,H+150],[W*0.25,H+150],[-150,H*0.75],[-150,H*0.25],
+        [-100, -100], [W / 2, -150], [W + 100, -100], [W + 150, H / 2],
+        [W + 100, H + 100], [W / 2, H + 150], [-100, H + 100], [-150, H / 2],
+        [W * 0.25, -150], [W * 0.75, -150], [W + 150, H * 0.25], [W + 150, H * 0.75],
+        [W * 0.75, H + 150], [W * 0.25, H + 150], [-150, H * 0.75], [-150, H * 0.25],
     ];
     positions.forEach(([tx, ty], i) => {
         if (t === 30 + i * 90) {
-            State.attacks.push(new GasterBlaster(tx, ty, null, 0.5, 60, 30, 40, 'normal', p.x+p.w/2, p.y+p.h/2));
+            State.attacks.push(new GasterBlaster(tx, ty, null, 0.5, 60, 30, 40, 'normal', p.x + p.w / 2, p.y + p.h / 2));
         }
     });
     return t > 1800;
@@ -1597,71 +1577,70 @@ Patterns.push((t) => {
 // ★Phase2 Turn6: 重力＋骨の嵐＋ブラスター複合
 Patterns.push((t) => {
     if (t === 0) { p.isBlue = true; }
-    if (t === 30)  { p.setGravityDir('LEFT');  spawnSlam('LEFT', 60, 25); }
-    if (t === 200) { p.setGravityDir('DOWN');  spawnSlam('DOWN', 60, 25); }
+    if (t === 30) { p.setGravityDir('LEFT'); spawnSlam('LEFT', 60, 25); }
+    if (t === 200) { p.setGravityDir('DOWN'); spawnSlam('DOWN', 60, 25); }
     if (t === 370) { p.setGravityDir('RIGHT'); spawnSlam('RIGHT', 60, 25); }
-    if (t === 540) { p.setGravityDir('UP');    spawnSlam('UP', 60, 25); }
+    if (t === 540) { p.setGravityDir('UP'); spawnSlam('UP', 60, 25); }
     if (t === 710) { p.setGravityDir('DOWN'); p.isBlue = false; }
-    if (t % 100 === 0 && t > 710 && t < 1100) {
+    if (t % 70 === 0 && t > 710 && t < 1100) {
         const gap = 60 + Math.random() * (H - 150);
-        spawnBone(W+10, 0, 12, gap-20, -1.4, 0, false);
-        spawnBone(W+10, gap+20, 12, H, -1.4, 0, false);
+        spawnBone(W + 10, 0, 12, gap - 20, -1.8, 0, false);
+        spawnBone(W + 10, gap + 20, 12, H, -1.8, 0, false);
     }
-    if (t === 750)  spawnBlaster(W*0.1, H*0.1, null, 0.8, 60, 30, 35);
-    if (t === 870)  spawnBlaster(W*0.9, H*0.9, null, 0.8, 60, 30, 35);
-    if (t === 990)  spawnBlaster(W*0.5, H*0.05, null, 0.8, 60, 30, 35);
+    if (t === 750) spawnBlaster(W * 0.1, H * 0.1, null, 0.8, 60, 30, 35);
+    if (t === 870) spawnBlaster(W * 0.9, H * 0.9, null, 0.8, 60, 30, 35);
+    if (t === 990) spawnBlaster(W * 0.5, H * 0.05, null, 0.8, 60, 30, 35);
     return t > 1300;
 });
 
 // ★Phase2 Turn7: 高速追尾ブラスター連続（2秒に1発・速い）
 Patterns.push((t) => {
     if (t === 0) p.isBlue = false;
-    if (t === 30)   spawnBlaster(W*0.1, H*0.1, null, 0.8, 60, 30, 35);
-    if (t === 150)  spawnBlaster(W*0.9, H*0.9, null, 0.8, 60, 30, 35);
-    if (t === 270)  spawnBlaster(W*0.9, H*0.1, null, 0.8, 60, 30, 35);
-    if (t === 390)  spawnBlaster(W*0.1, H*0.9, null, 0.8, 60, 30, 35);
-    if (t === 510)  spawnBlaster(W*0.5, H*0.05, null, 0.8, 60, 30, 35);
-    if (t === 630)  spawnBlaster(W*0.05, H*0.5, null, 0.8, 60, 30, 35);
-    if (t === 750)  spawnBlaster(W*0.95, H*0.5, null, 0.8, 60, 30, 35);
-    if (t === 870)  spawnBlaster(W*0.5, H*0.95, null, 0.8, 60, 30, 35);
-    if (t === 990)  spawnBlaster(W*0.2, H*0.5, null, 0.8, 60, 30, 35);
-    if (t === 1110) spawnBlaster(W*0.8, H*0.5, null, 0.8, 60, 30, 35);
+    if (t === 30) spawnBlaster(W * 0.1, H * 0.1, null, 0.8, 60, 30, 35);
+    if (t === 150) spawnBlaster(W * 0.9, H * 0.9, null, 0.8, 60, 30, 35);
+    if (t === 270) spawnBlaster(W * 0.9, H * 0.1, null, 0.8, 60, 30, 35);
+    if (t === 390) spawnBlaster(W * 0.1, H * 0.9, null, 0.8, 60, 30, 35);
+    if (t === 510) spawnBlaster(W * 0.5, H * 0.05, null, 0.8, 60, 30, 35);
+    if (t === 630) spawnBlaster(W * 0.05, H * 0.5, null, 0.8, 60, 30, 35);
+    if (t === 750) spawnBlaster(W * 0.95, H * 0.5, null, 0.8, 60, 30, 35);
+    if (t === 870) spawnBlaster(W * 0.5, H * 0.95, null, 0.8, 60, 30, 35);
+    if (t === 990) spawnBlaster(W * 0.2, H * 0.5, null, 0.8, 60, 30, 35);
+    if (t === 1110) spawnBlaster(W * 0.8, H * 0.5, null, 0.8, 60, 30, 35);
     return t > 1400;
 });
 
 // ★Phase2 Turn8: 暗転＋骨嵐＋重力同時
 Patterns.push((t) => {
     if (t === 0) { p.isBlue = true; p.gravityDir = 'DOWN'; }
-    if (t === 30) { flashBlack(); }
+    if (t === 30) { document.getElementById('gameCanvas').style.filter = 'brightness(0)'; }
     if (t === 80) {
-        flashHide();
+        document.getElementById('gameCanvas').style.filter = 'none';
         p.isBlue = true;
     }
-    if (t % 80 === 0 && t > 80 && t < 700) spawnBone(W+10, H-50, 12, 50, -1.5, 0, false);
-    if (t % 80 === 40 && t > 80 && t < 700) spawnBone(-20, H-50, 12, 50, 1.5, 0, false);
+    if (t % 50 === 0 && t > 80 && t < 700) spawnBone(W + 10, H - 50, 12, 50, -2.0, 0, false);
+    if (t % 50 === 25 && t > 80 && t < 700) spawnBone(-20, H - 50, 12, 50, 2.0, 0, false);
     if (t === 400) { p.setGravityDir('LEFT'); spawnSlam('LEFT', 50, 20); }
     if (t === 550) { p.setGravityDir('DOWN'); spawnSlam('DOWN', 50, 20); }
-    if (t === 700) { flashBlack(); }
-    if (t === 750) { flashHide(); p.isBlue = false; }
+    if (t === 700) { document.getElementById('gameCanvas').style.filter = 'brightness(0)'; }
+    if (t === 750) { document.getElementById('gameCanvas').style.filter = 'none'; p.isBlue = false; }
     if (t % 70 === 0 && t > 750 && t < 1100) {
         const gap = 60 + Math.random() * (H - 150);
-        spawnBone(W+10, 0, 12, gap-20, -2.0, 0, false);
-        spawnBone(W+10, gap+20, 12, H, -2.0, 0, false);
+        spawnBone(W + 10, 0, 12, gap - 20, -2.0, 0, false);
+        spawnBone(W + 10, gap + 20, 12, H, -2.0, 0, false);
     }
     return t > 1300;
 });
 
 // ★Phase2 Turn9: 洗濯機ブラスター（速め）＋隙間骨
 Patterns.push((t) => {
-    if (t === 0) { p.resetPos(); p.isBlue = false; } // ★赤ソウル
-    if (t > 0 && t < 1200) p.isBlue = false; // ★常に赤ソウルを維持
-    if (t > 30 && t % 70 === 0 && t < 1200) {
-        const a = t * 0.015, r = Math.min(W, H) / 2 + 50;
-        const tx = W/2 + Math.cos(a)*r, ty = H/2 + Math.sin(a)*r;
-        spawnBlaster(tx, ty, Math.atan2(H/2-ty, W/2-tx), 0.8, 80, 40, 35);
+    if (t === 0) { p.resetPos(); p.isBlue = true; p.gravityDir = 'DOWN'; }
+    if (t > 30 && t % 50 === 0 && t < 1200) {
+        const a = t * 0.02, r = Math.min(W, H) / 2 + 50;
+        const tx = W / 2 + Math.cos(a) * r, ty = H / 2 + Math.sin(a) * r;
+        spawnBlaster(tx, ty, Math.atan2(H / 2 - ty, W / 2 - tx), 0.8, 60, 30, 35);
     }
-    if (t % 110 === 0 && t > 30 && t < 1200) spawnBone(W+10, H-50, 12, 50, -1.3, 0, false);
-    if (t % 110 === 55 && t > 30 && t < 1200) spawnBone(W+10, 0, 12, H-60, -1.3, 0, false);
+    if (t % 90 === 0 && t > 30 && t < 1200) spawnBone(W + 10, H - 50, 12, 50, -1.6, 0, false);
+    if (t % 90 === 45 && t > 30 && t < 1200) spawnBone(W + 10, 0, 12, H - 60, -1.6, 0, false);
     return t > 1400;
 });
 
@@ -1670,21 +1649,21 @@ Patterns.push((t) => {
     if (t === 0) { p.isBlue = false; }
 
     // 骨の嵐
-    if (t % 80 === 0 && t < 700) {
-        spawnBone(W+10, H-50, 12, 50, -1.5, 0, false);
-        spawnBone(-20, H-50, 12, 50, 1.5, 0, false);
+    if (t % 45 === 0 && t < 600) {
+        spawnBone(W + 10, H - 50, 12, 50, -2.0, 0, false);
+        spawnBone(-20, H - 50, 12, 50, 2.0, 0, false);
     }
     // 追尾ブラスター2秒に1発
-    if (t === 60)  spawnBlaster(W*0.1, H*0.1, null, 0.8, 60, 30, 35);
-    if (t === 180) spawnBlaster(W*0.9, H*0.9, null, 0.8, 60, 30, 35);
-    if (t === 300) spawnBlaster(W*0.9, H*0.1, null, 0.8, 60, 30, 35);
-    if (t === 420) spawnBlaster(W*0.1, H*0.9, null, 0.8, 60, 30, 35);
+    if (t === 60) spawnBlaster(W * 0.1, H * 0.1, null, 0.8, 60, 30, 35);
+    if (t === 180) spawnBlaster(W * 0.9, H * 0.9, null, 0.8, 60, 30, 35);
+    if (t === 300) spawnBlaster(W * 0.9, H * 0.1, null, 0.8, 60, 30, 35);
+    if (t === 420) spawnBlaster(W * 0.1, H * 0.9, null, 0.8, 60, 30, 35);
 
     // 重力
     if (t === 650) { p.isBlue = true; p.setGravityDir('LEFT'); spawnSlam('LEFT', 60, 25); }
-    if (t === 800) { p.setGravityDir('UP');    spawnSlam('UP', 60, 25); }
+    if (t === 800) { p.setGravityDir('UP'); spawnSlam('UP', 60, 25); }
     if (t === 950) { p.setGravityDir('RIGHT'); spawnSlam('RIGHT', 60, 25); }
-    if (t === 1100){ p.setGravityDir('DOWN');  spawnSlam('DOWN', 60, 25); }
+    if (t === 1100) { p.setGravityDir('DOWN'); spawnSlam('DOWN', 60, 25); }
 
     // 最後に16方向ブラスター一斉
     if (t === 1300) {
@@ -1693,8 +1672,8 @@ Patterns.push((t) => {
             const angle = (i / 16) * Math.PI * 2;
             const r = Math.max(W, H);
             State.attacks.push(new GasterBlaster(
-                W/2 + Math.cos(angle)*r, H/2 + Math.sin(angle)*r,
-                null, 0.5, 60, 30, 40, 'normal', p.x+p.w/2, p.y+p.h/2
+                W / 2 + Math.cos(angle) * r, H / 2 + Math.sin(angle) * r,
+                null, 0.5, 60, 30, 40, 'normal', p.x + p.w / 2, p.y + p.h / 2
             ));
         }
     }
@@ -1726,9 +1705,9 @@ function endAttackWithDialogue() {
 
 function triggerTransition() {
     playSound('transition');
-    State.inTransition = true; elFlash.classList.remove('hidden'); State.attacks = [];
+    State.inTransition = true; State.attacks = [];
     setTimeout(() => {
-        elFlash.classList.add('hidden'); State.inTransition = false; hideMessage();
+        State.inTransition = false; hideMessage();
         State.turnIndex = Math.min(State.turnIndex + 1, Patterns.length - 1);
         State.patternTimer = 0; State.patternDone = false; State.postAttackTimer = 0;
         if (State.turnIndex === 10) {
@@ -1773,7 +1752,7 @@ function update() {
     }
     if (State.screenShake > 0) {
         State.screenShake -= 0.5;
-        canvas.style.transform = `translate(${(Math.random()-0.5)*State.screenShake}px,${(Math.random()-0.5)*State.screenShake}px)`;
+        canvas.style.transform = `translate(${(Math.random() - 0.5) * State.screenShake}px,${(Math.random() - 0.5) * State.screenShake}px)`;
     } else { canvas.style.transform = 'none'; }
     updateUI();
 }
@@ -1781,50 +1760,31 @@ function update() {
 function drawArena() {
     const idx = State.turnIndex;
     let arenaX, arenaY, arenaW, arenaH;
-    // ★canvasサイズは600x400固定のまま、内部のクリップ領域だけ変える
-    if (idx === 20) { State.arenaW = 440; State.arenaH = 120; }
-    else if (idx === 21) { State.arenaW = 160; State.arenaH = 320; }
-    else if (idx === 22) { State.arenaW = 260; State.arenaH = 160; }
-    else { State.arenaW = 600; State.arenaH = 400; }
-    p.x = Math.max(0, Math.min(State.arenaW - p.w, p.x));
-    p.y = Math.max(0, Math.min(State.arenaH - p.h, p.y));
+    if (idx === 20) { canvas.width = 440; canvas.height = 120; }
+    else if (idx === 21) { canvas.width = 160; canvas.height = 320; }
+    else if (idx === 22) { canvas.width = 260; canvas.height = 160; }
+    else { canvas.width = 600; canvas.height = 400; }
+    p.x = Math.max(0, Math.min(canvas.width - p.w, p.x));
+    p.y = Math.max(0, Math.min(canvas.height - p.h, p.y));
 }
 
 const elArena = document.getElementById('arena');
 function updateArenaStyle() {
     const idx = State.turnIndex;
-    if (idx === 20) { State.arenaW = 440; State.arenaH = 120; }
-    else if (idx === 21) { State.arenaW = 160; State.arenaH = 320; }
-    else if (idx === 22) { State.arenaW = 260; State.arenaH = 160; }
-    else { State.arenaW = 600; State.arenaH = 400; }
-    p.x = State.arenaW / 2 - p.w / 2;
-    p.y = State.arenaH / 2 - p.h / 2;
+    if (idx === 20) { canvas.width = 440; canvas.height = 120; }
+    else if (idx === 21) { canvas.width = 160; canvas.height = 320; }
+    else if (idx === 22) { canvas.width = 260; canvas.height = 160; }
+    else { canvas.width = 600; canvas.height = 400; }
+    p.x = canvas.width / 2 - p.w / 2;
+    p.y = canvas.height / 2 - p.h / 2;
     p.vx = 0; p.vy = 0;
 }
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (State.isGameOver) return;
-
-    const aW = State.arenaW, aH = State.arenaH;
-    const ox = (canvas.width  - aW) / 2;
-    const oy = (canvas.height - aH) / 2;
-
-    // ★枠を描画（白い枠線）
-    ctx.save();
-    ctx.strokeStyle = 'white';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(ox - 2, oy - 2, aW + 4, aH + 4);
-
-    // ★クリップして枠内だけ描画
-    ctx.beginPath();
-    ctx.rect(ox, oy, aW, aH);
-    ctx.clip();
-    ctx.translate(ox, oy);
-
+    if (State.isGameOver) return; // ゲームオーバー時はHTML側で表示
     p.draw(ctx);
     for (const attack of State.attacks) attack.draw(ctx);
-    ctx.restore();
 }
 
 // ゲームオーバー画面を表示
@@ -1911,10 +1871,10 @@ function showGameOver() {
             ctx.fillStyle = 'white';
             ctx.font = 'bold 36px monospace';
             ctx.textAlign = 'center';
-            ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2 - 20);
+            ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 20);
             ctx.font = '18px monospace';
             ctx.fillStyle = '#888';
-            ctx.fillText('F5キーでリトライ', canvas.width/2, canvas.height/2 + 20);
+            ctx.fillText('F5キーでリトライ', canvas.width / 2, canvas.height / 2 + 20);
         }
     }, 800);
 }
@@ -1927,8 +1887,8 @@ if (retryBtn) {
     retryBtn.style.position = 'relative';
     retryBtn.style.pointerEvents = 'auto';
     retryBtn.onclick = () => {
-        try { location.reload(true); } catch(e) {
-            try { window.location.reload(); } catch(e2) {
+        try { location.reload(true); } catch (e) {
+            try { window.location.reload(); } catch (e2) {
                 alert('F5キーを押してリトライしてください');
             }
         }
@@ -1951,7 +1911,8 @@ allMenuBtns.forEach(btn => {
             } else if (e.target.id === 'fight-btn') {
                 hideMessage(); State.turnState = 2;
                 slashEffect(); elMiss.classList.remove('hidden'); playSound('miss');
-                setTimeout(() => { elSans.style.transition = 'transform 0.2s'; elSans.style.transform = 'translateX(0)'; elMiss.classList.add('hidden');
+                setTimeout(() => {
+                    elSans.style.transition = 'transform 0.2s'; elSans.style.transform = 'translateX(0)'; elMiss.classList.add('hidden');
                     showMessage('…わかったよ'); setTimeout(triggerTransition, 1000);
                 }, 1000); return;
             }
@@ -2004,18 +1965,18 @@ setTimeout(() => {
         for (let i = 0; i < 14; i++) {
             setTimeout(() => {
                 if (i % 2 === 0) {
-                    spawnBone(W+10, H-55, 12, 55, -1.2, 0, false);
+                    spawnBone(W + 10, H - 55, 12, 55, -1.2, 0, false);
                 } else {
-                    spawnBone(W+10, 0, 12, H-65, -1.2, 0, false);
+                    spawnBone(W + 10, 0, 12, H - 65, -1.2, 0, false);
                 }
             }, i * 600);
         }
 
         // ブラスターは固定角度で4発（四隅から中央方向）
-        setTimeout(() => { spawnBlaster(W*0.1, H*0.1, Math.PI*0.25, 1, 150, 40, 35); }, 300);
-        setTimeout(() => { spawnBlaster(W*0.9, H*0.9, Math.PI*1.25, 1, 150, 40, 35); }, 1200);
-        setTimeout(() => { spawnBlaster(W*0.9, H*0.1, Math.PI*0.75, 1, 150, 40, 35); }, 2500);
-        setTimeout(() => { spawnBlaster(W*0.1, H*0.9, Math.PI*1.75, 1, 150, 40, 35); }, 3800);
+        setTimeout(() => { spawnBlaster(W * 0.1, H * 0.1, Math.PI * 0.25, 1, 150, 40, 35); }, 300);
+        setTimeout(() => { spawnBlaster(W * 0.9, H * 0.9, Math.PI * 1.25, 1, 150, 40, 35); }, 1200);
+        setTimeout(() => { spawnBlaster(W * 0.9, H * 0.1, Math.PI * 0.75, 1, 150, 40, 35); }, 2500);
+        setTimeout(() => { spawnBlaster(W * 0.1, H * 0.9, Math.PI * 1.75, 1, 150, 40, 35); }, 3800);
 
     }, 6400);
 
@@ -2049,14 +2010,14 @@ function createMegaloBGM() {
     const e4d = e4 * 1.5;
 
     const F = {
-        'D2':73.42,'A2':110.00,'C3':130.81,'C#3':138.59,'D3':146.83,
-        'E3':164.81,'F3':174.61,'F#3':185.00,'G3':196.00,'G#3':207.65,
-        'A3':220.00,'A#3':233.08,'B3':246.94,'C4':261.63,'C#4':277.18,
-        'D4':293.66,'D#4':311.13,'E4':329.63,'F4':349.23,'F#4':369.99,
-        'G4':392.00,'G#4':415.30,'A4':440.00,'A#4':466.16,'B4':493.88,
-        'C5':523.25,'C#5':554.37,'D5':587.33,'D#5':622.25,'E5':659.25,
-        'F5':698.46,'F#5':739.99,'G5':783.99,'G#5':830.61,'A5':880.00,
-        'A#5':932.33,'B5':987.77,'C6':1046.50,'D6':1174.66,
+        'D2': 73.42, 'A2': 110.00, 'C3': 130.81, 'C#3': 138.59, 'D3': 146.83,
+        'E3': 164.81, 'F3': 174.61, 'F#3': 185.00, 'G3': 196.00, 'G#3': 207.65,
+        'A3': 220.00, 'A#3': 233.08, 'B3': 246.94, 'C4': 261.63, 'C#4': 277.18,
+        'D4': 293.66, 'D#4': 311.13, 'E4': 329.63, 'F4': 349.23, 'F#4': 369.99,
+        'G4': 392.00, 'G#4': 415.30, 'A4': 440.00, 'A#4': 466.16, 'B4': 493.88,
+        'C5': 523.25, 'C#5': 554.37, 'D5': 587.33, 'D#5': 622.25, 'E5': 659.25,
+        'F5': 698.46, 'F#5': 739.99, 'G5': 783.99, 'G#5': 830.61, 'A5': 880.00,
+        'A#5': 932.33, 'B5': 987.77, 'C6': 1046.50, 'D6': 1174.66,
     };
 
     const masterGain = ctx.createGain();
@@ -2070,7 +2031,7 @@ function createMegaloBGM() {
     comp.release.value = 0.15;
     comp.connect(masterGain);
 
-    function n(freq, t, dur, type='square', vol=0.15, det=0) {
+    function n(freq, t, dur, type = 'square', vol = 0.15, det = 0) {
         const osc = ctx.createOscillator();
         const g = ctx.createGain();
         osc.connect(g); g.connect(comp);
@@ -2085,94 +2046,94 @@ function createMegaloBGM() {
         osc.stop(t + dur);
     }
 
-    function kick(t, vol=0.6) {
-        const o=ctx.createOscillator(), g=ctx.createGain();
+    function kick(t, vol = 0.6) {
+        const o = ctx.createOscillator(), g = ctx.createGain();
         o.connect(g); g.connect(comp);
         o.frequency.setValueAtTime(160, t);
-        o.frequency.exponentialRampToValueAtTime(28, t+0.13);
+        o.frequency.exponentialRampToValueAtTime(28, t + 0.13);
         g.gain.setValueAtTime(vol, t);
-        g.gain.exponentialRampToValueAtTime(0.001, t+0.13);
-        o.start(t); o.stop(t+0.16);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.13);
+        o.start(t); o.stop(t + 0.16);
     }
 
-    function snare(t, vol=0.38) {
-        const buf=ctx.createBuffer(1,ctx.sampleRate*0.12,ctx.sampleRate);
-        const d=buf.getChannelData(0);
-        for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length);
-        const s=ctx.createBufferSource(), g=ctx.createGain(), f=ctx.createBiquadFilter();
-        s.buffer=buf; s.connect(f); f.connect(g); g.connect(comp);
-        f.type='highpass'; f.frequency.value=1300;
-        g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.12);
+    function snare(t, vol = 0.38) {
+        const buf = ctx.createBuffer(1, ctx.sampleRate * 0.12, ctx.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+        const s = ctx.createBufferSource(), g = ctx.createGain(), f = ctx.createBiquadFilter();
+        s.buffer = buf; s.connect(f); f.connect(g); g.connect(comp);
+        f.type = 'highpass'; f.frequency.value = 1300;
+        g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
         s.start(t);
     }
 
-    function hat(t, vol=0.07, open=false) {
-        const dur=open?0.1:0.025;
-        const buf=ctx.createBuffer(1,ctx.sampleRate*dur,ctx.sampleRate);
-        const d=buf.getChannelData(0);
-        for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length);
-        const s=ctx.createBufferSource(), g=ctx.createGain(), f=ctx.createBiquadFilter();
-        s.buffer=buf; s.connect(f); f.connect(g); g.connect(comp);
-        f.type='highpass'; f.frequency.value=9000;
-        g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    function hat(t, vol = 0.07, open = false) {
+        const dur = open ? 0.1 : 0.025;
+        const buf = ctx.createBuffer(1, ctx.sampleRate * dur, ctx.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+        const s = ctx.createBufferSource(), g = ctx.createGain(), f = ctx.createBiquadFilter();
+        s.buffer = buf; s.connect(f); f.connect(g); g.connect(comp);
+        f.type = 'highpass'; f.frequency.value = 9000;
+        g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
         s.start(t);
     }
 
     function crash(t) {
-        const buf=ctx.createBuffer(1,ctx.sampleRate*1.5,ctx.sampleRate);
-        const d=buf.getChannelData(0);
-        for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length);
-        const s=ctx.createBufferSource(), g=ctx.createGain(), f=ctx.createBiquadFilter();
-        s.buffer=buf; s.connect(f); f.connect(g); g.connect(comp);
-        f.type='highpass'; f.frequency.value=4000;
-        g.gain.setValueAtTime(0.3,t); g.gain.exponentialRampToValueAtTime(0.001,t+1.5);
+        const buf = ctx.createBuffer(1, ctx.sampleRate * 1.5, ctx.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+        const s = ctx.createBufferSource(), g = ctx.createGain(), f = ctx.createBiquadFilter();
+        s.buffer = buf; s.connect(f); f.connect(g); g.connect(comp);
+        f.type = 'highpass'; f.frequency.value = 4000;
+        g.gain.setValueAtTime(0.3, t); g.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
         s.start(t);
     }
 
     // ★本家メガロヴァニア ベースライン（完全再現）
     // D D D A G# - G - F - D E F G
     const bass = [
-        ['D3',e16],['D3',e16],['D3',e8],
-        ['D4',e8],['A3',e8],
-        ['G#3',e16],['G#3',e16],['G3',e8],
-        ['F3',e16],['F3',e16],
-        ['E3',e16],['E3',e16],['E3',e8],
-        ['C4',e8],['G#3',e8],
-        ['G3',e16],['G3',e16],['E3',e8],
-        ['D3',e16],['D3',e16],
+        ['D3', e16], ['D3', e16], ['D3', e8],
+        ['D4', e8], ['A3', e8],
+        ['G#3', e16], ['G#3', e16], ['G3', e8],
+        ['F3', e16], ['F3', e16],
+        ['E3', e16], ['E3', e16], ['E3', e8],
+        ['C4', e8], ['G#3', e8],
+        ['G3', e16], ['G3', e16], ['E3', e8],
+        ['D3', e16], ['D3', e16],
     ];
 
     // ★本家メガロヴァニア メロディ第1フレーズ
     // 「HA! You think you can beat me?」の部分
     const melA = [
-        ['D5',e4],['D5',e4],
-        ['D5',e8],['A4',e8d],['A4',e16],
-        ['G#4',e4],['G4',e4],
-        ['F4',e8],['D4',e8],['F4',e8],['G4',e8],
+        ['D5', e4], ['D5', e4],
+        ['D5', e8], ['A4', e8d], ['A4', e16],
+        ['G#4', e4], ['G4', e4],
+        ['F4', e8], ['D4', e8], ['F4', e8], ['G4', e8],
     ];
 
     // ★本家メガロヴァニア メロディ第2フレーズ
     const melB = [
-        ['C5',e4],['C5',e4],
-        ['C5',e8],['G4',e8d],['G4',e16],
-        ['F#4',e4],['F4',e4],
-        ['E4',e8],['C4',e8],['E4',e8],['F4',e8],
+        ['C5', e4], ['C5', e4],
+        ['C5', e8], ['G4', e8d], ['G4', e16],
+        ['F#4', e4], ['F4', e4],
+        ['E4', e8], ['C4', e8], ['E4', e8], ['F4', e8],
     ];
 
     // ★本家メガロヴァニア サビメロディ（盛り上がり部分）
     const melC = [
-        ['D5',e8],['E5',e8],['F5',e8],['D5',e8],
-        ['E5',e8],['D5',e8],['C5',e8],['D5',e8],
-        ['A4',e8],['A#4',e8],['C5',e8],['A4',e8],
-        ['A#4',e8],['A4',e8],['G4',e8],['A4',e8],
+        ['D5', e8], ['E5', e8], ['F5', e8], ['D5', e8],
+        ['E5', e8], ['D5', e8], ['C5', e8], ['D5', e8],
+        ['A4', e8], ['A#4', e8], ['C5', e8], ['A4', e8],
+        ['A#4', e8], ['A4', e8], ['G4', e8], ['A4', e8],
     ];
 
     // ★本家メガロヴァニア 対旋律
     const melD = [
-        ['A5',e8],['G5',e8],['F5',e8],['E5',e8],
-        ['F5',e8],['E5',e8],['D5',e8],['E5',e8],
-        ['C5',e8],['D5',e8],['E5',e8],['F5',e8],
-        ['G5',e4],['F#5',e8],['F5',e8],
+        ['A5', e8], ['G5', e8], ['F5', e8], ['E5', e8],
+        ['F5', e8], ['E5', e8], ['D5', e8], ['E5', e8],
+        ['C5', e8], ['D5', e8], ['E5', e8], ['F5', e8],
+        ['G5', e4], ['F#5', e8], ['F5', e8],
     ];
 
     const bar = e16 * 32;
@@ -2208,12 +2169,12 @@ function createMegaloBGM() {
     function scheduleBar(t, section) {
         // ★ベースライン（全セクション）
         const bassVol = section === 'bass_only' ? 0.18
-                      : section === 'chorus'    ? 0.22 : 0.17;
+            : section === 'chorus' ? 0.22 : 0.17;
         let bt = t;
         for (const [note, dur] of bass) {
-            n(F[note], bt, dur*0.85, 'sawtooth', bassVol);
+            n(F[note], bt, dur * 0.85, 'sawtooth', bassVol);
             if (section !== 'bass_only') {
-                n(F[note]*2, bt, dur*0.8, 'square', bassVol*0.2);
+                n(F[note] * 2, bt, dur * 0.8, 'square', bassVol * 0.2);
             }
             bt += dur;
         }
@@ -2222,13 +2183,13 @@ function createMegaloBGM() {
         if (section !== 'bass_only') {
             for (let i = 0; i < 32; i++) {
                 const nt = t + i * e16;
-                if (i===0 || i===16) kick(nt);
-                if (section==='chorus' && i===12) kick(nt, 0.35);
-                if (i===8 || i===24) snare(nt);
-                const hv = section==='chorus' ? 0.09 : 0.065;
-                hat(nt, i%2===0 ? hv : hv*0.5, i%8===7);
+                if (i === 0 || i === 16) kick(nt);
+                if (section === 'chorus' && i === 12) kick(nt, 0.35);
+                if (i === 8 || i === 24) snare(nt);
+                const hv = section === 'chorus' ? 0.09 : 0.065;
+                hat(nt, i % 2 === 0 ? hv : hv * 0.5, i % 8 === 7);
             }
-            if (section==='chorus' || section==='melA') crash(t);
+            if (section === 'chorus' || section === 'melA') crash(t);
         }
 
         // ★メロディA（第1フレーズ）
@@ -2236,8 +2197,8 @@ function createMegaloBGM() {
             let mt = t;
             const vol = section === 'build' ? 0.13 : 0.14;
             for (const [note, dur] of melA) {
-                n(F[note], mt, dur*0.82, 'square', vol, -8);
-                if (section === 'build') n(F[note], mt, dur*0.82, 'square', 0.05, 8);
+                n(F[note], mt, dur * 0.82, 'square', vol, -8);
+                if (section === 'build') n(F[note], mt, dur * 0.82, 'square', 0.05, 8);
                 mt += dur;
                 if (mt > t + bar) break;
             }
@@ -2247,7 +2208,7 @@ function createMegaloBGM() {
         if (section === 'melB') {
             let mt = t;
             for (const [note, dur] of melB) {
-                n(F[note], mt, dur*0.82, 'square', 0.13, -8);
+                n(F[note], mt, dur * 0.82, 'square', 0.13, -8);
                 mt += dur;
                 if (mt > t + bar) break;
             }
@@ -2258,16 +2219,16 @@ function createMegaloBGM() {
             // メロディC（サビメイン）
             let mt = t;
             for (const [note, dur] of melC) {
-                n(F[note], mt, dur*0.8, 'square', 0.16, -10);
-                n(F[note], mt, dur*0.8, 'sawtooth', 0.06, 12);
-                n(F[note]*0.5, mt, dur*0.8, 'square', 0.06);
+                n(F[note], mt, dur * 0.8, 'square', 0.16, -10);
+                n(F[note], mt, dur * 0.8, 'sawtooth', 0.06, 12);
+                n(F[note] * 0.5, mt, dur * 0.8, 'square', 0.06);
                 mt += dur;
                 if (mt > t + bar) break;
             }
             // 対旋律D
             let ct = t;
             for (const [note, dur] of melD) {
-                n(F[note], ct, dur*0.75, 'square', 0.07, 5);
+                n(F[note], ct, dur * 0.75, 'square', 0.07, 5);
                 ct += dur;
                 if (ct > t + bar) break;
             }
