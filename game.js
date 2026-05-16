@@ -728,7 +728,7 @@ class GasterBlaster {
         this.laserWidth = 60 * scale; this.type = type;
         this.angle = (rot === null) ? Math.atan2(playerY - ty, playerX - tx) : rot;
         if (this.type === 'fast') {
-            this.warnTime = 150; this.lockTime = 60; this.fireTime = 25;
+            this.warnTime = 150; this.lockTime = 48; this.fireTime = 25;
             this.laserWidth = 35 * scale;
         } else {
             this.warnTime = warnTime; this.lockTime = lockTime; this.fireTime = fireTime;
