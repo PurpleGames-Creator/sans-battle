@@ -36,20 +36,26 @@
             display: flex;
             justify-content: center;
             align-items: flex-end;
-            height: 130px;
+            height: 160px;
         }
 
-        /* 横向き時はサンズを小さく */
-        @media (orientation: landscape) and (max-height: 500px) {
-            #enemy-container { height: 80px; }
-            #sans-sprite { height: 75px !important; }
+        /* スマートフォン横向き */
+        @media (orientation: landscape) and (max-height: 600px) {
+            #game-container { max-width: 100%; }
+            #enemy-container { height: 110px; }
+            #sans-sprite { height: 100px !important; }
+            #gameCanvas { max-height: 220px; }
+            #ui-container { padding: 3px 0 2px 0; }
+            .controls { gap: 2px; padding: 2px; }
+            .menu-btn { padding: 5px 0; font-size: 7px; }
         }
 
         #sans-sprite {
-            height: 120px;
+            height: 150px;
             width: auto;
             image-rendering: pixelated;
             transition: transform 0.1s ease-out;
+            flex-shrink: 0;
         }
 
         #miss-text {
