@@ -704,8 +704,7 @@ class Bone {
     }
     draw(ctx) {
         ctx.fillStyle = this.isBlue ? '#00aaff' : '#ffffff';
-        const centerX = this.x + this.w / 2;
-        const scale = this.w / 8;
+        const scale = this.w / 6;
 
         // 骨のドット絵描画（Undertale風）
         const drawBonePixel = (px, py) => {
@@ -713,25 +712,25 @@ class Bone {
         };
 
         // 縦の中央線（太い骨）
-        for (let i = 1; i < this.h / scale - 1; i++) {
+        for (let i = 2; i < this.h / scale - 2; i++) {
+            drawBonePixel(1, i);
             drawBonePixel(2, i);
             drawBonePixel(3, i);
             drawBonePixel(4, i);
-            drawBonePixel(5, i);
         }
 
-        // 上の球（6x4ピクセル）
-        drawBonePixel(2, 0); drawBonePixel(3, 0); drawBonePixel(4, 0); drawBonePixel(5, 0);
-        drawBonePixel(1, 1); drawBonePixel(2, 1); drawBonePixel(5, 1); drawBonePixel(6, 1);
-        drawBonePixel(1, 2); drawBonePixel(2, 2); drawBonePixel(5, 2); drawBonePixel(6, 2);
-        drawBonePixel(2, 3); drawBonePixel(3, 3); drawBonePixel(4, 3); drawBonePixel(5, 3);
+        // 上の球（完全な球形）
+        drawBonePixel(2, 0); drawBonePixel(3, 0);
+        drawBonePixel(1, 1); drawBonePixel(2, 1); drawBonePixel(3, 1); drawBonePixel(4, 1);
+        drawBonePixel(1, 2); drawBonePixel(2, 2); drawBonePixel(3, 2); drawBonePixel(4, 2);
+        drawBonePixel(2, 3); drawBonePixel(3, 3);
 
-        // 下の球（6x4ピクセル）
+        // 下の球（完全な球形）
         const bottomOffset = Math.floor(this.h / scale) - 4;
-        drawBonePixel(2, bottomOffset); drawBonePixel(3, bottomOffset); drawBonePixel(4, bottomOffset); drawBonePixel(5, bottomOffset);
-        drawBonePixel(1, bottomOffset + 1); drawBonePixel(2, bottomOffset + 1); drawBonePixel(5, bottomOffset + 1); drawBonePixel(6, bottomOffset + 1);
-        drawBonePixel(1, bottomOffset + 2); drawBonePixel(2, bottomOffset + 2); drawBonePixel(5, bottomOffset + 2); drawBonePixel(6, bottomOffset + 2);
-        drawBonePixel(2, bottomOffset + 3); drawBonePixel(3, bottomOffset + 3); drawBonePixel(4, bottomOffset + 3); drawBonePixel(5, bottomOffset + 3);
+        drawBonePixel(2, bottomOffset); drawBonePixel(3, bottomOffset);
+        drawBonePixel(1, bottomOffset + 1); drawBonePixel(2, bottomOffset + 1); drawBonePixel(3, bottomOffset + 1); drawBonePixel(4, bottomOffset + 1);
+        drawBonePixel(1, bottomOffset + 2); drawBonePixel(2, bottomOffset + 2); drawBonePixel(3, bottomOffset + 2); drawBonePixel(4, bottomOffset + 2);
+        drawBonePixel(2, bottomOffset + 3); drawBonePixel(3, bottomOffset + 3);
     }
     checkCollision(pl) {
         if (this.x < pl.x + pl.w - 2 && this.x + this.w > pl.x + 2 &&
