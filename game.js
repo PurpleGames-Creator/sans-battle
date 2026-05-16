@@ -704,7 +704,7 @@ class Bone {
     }
     draw(ctx) {
         ctx.fillStyle = this.isBlue ? '#00aaff' : '#ffffff';
-        const scale = this.w / 10;
+        const scale = this.w / 8;
 
         // 骨のドット絵描画
         const drawBonePixel = (px, py) => {
