@@ -1815,11 +1815,6 @@ function soulBreakEffect() {
         ctx.fillStyle = 'rgba(0,0,0,0.15)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // フラッシュ（最初の10フレーム）
-        if (frame < 10) {
-            ctx.fillStyle = `rgba(255,255,255,${0.6 * (1 - frame / 10)})`;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
 
         // 破片を動かして描画
         pieces.forEach(piece => {
@@ -1849,9 +1844,6 @@ function soulBreakEffect() {
         }
     }
 
-    // 最初に白フラッシュ
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
     requestAnimationFrame(animateBreak);
 }
 
