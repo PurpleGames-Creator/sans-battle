@@ -1849,9 +1849,7 @@ function soulBreakEffect() {
 function showGameOver() {
     hideMessage();
     State.turnState = 2;
-    elFlash.classList.remove('hidden');
     setTimeout(() => {
-        elFlash.classList.add('hidden');
         const goScreen = document.getElementById('gameover-screen');
         if (goScreen) {
             goScreen.classList.remove('hidden');
