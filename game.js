@@ -704,10 +704,17 @@ class Bone {
     }
     draw(ctx) {
         ctx.fillStyle = this.isBlue ? '#00aaff' : '#ffffff';
-        ctx.fillRect(this.x, this.y, this.w, this.h);
+        const centerX = this.x + this.w / 2;
+        const boneThickness = Math.max(4, this.w * 0.4);
+        // 細い骨の中央線
+        ctx.fillRect(centerX - boneThickness / 2, this.y, boneThickness, this.h);
+        // 上の球
         ctx.beginPath();
-        ctx.arc(this.x + this.w / 2, this.y, this.w / 2, 0, Math.PI * 2);
-        ctx.arc(this.x + this.w / 2, this.y + this.h, this.w / 2, 0, Math.PI * 2);
+        ctx.arc(centerX, this.y, this.w / 2, 0, Math.PI * 2);
+        ctx.fill();
+        // 下の球
+        ctx.beginPath();
+        ctx.arc(centerX, this.y + this.h, this.w / 2, 0, Math.PI * 2);
         ctx.fill();
     }
     checkCollision(pl) {
