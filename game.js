@@ -705,17 +705,29 @@ class Bone {
     draw(ctx) {
         ctx.fillStyle = this.isBlue ? '#00aaff' : '#ffffff';
         const centerX = this.x + this.w / 2;
-        const boneThickness = Math.max(4, this.w * 0.4);
-        // 細い骨の中央線
-        ctx.fillRect(centerX - boneThickness / 2, this.y, boneThickness, this.h);
-        // 上の球
-        ctx.beginPath();
-        ctx.arc(centerX, this.y, this.w / 2, 0, Math.PI * 2);
-        ctx.fill();
-        // 下の球
-        ctx.beginPath();
-        ctx.arc(centerX, this.y + this.h, this.w / 2, 0, Math.PI * 2);
-        ctx.fill();
+        const scale = this.w / 12;
+
+        // 骨のドット絵描画（Undertale風）
+        const drawBonePixel = (px, py) => {
+            ctx.fillRect(this.x + px * scale, this.y + py * scale, scale, scale);
+        };
+
+        // 縦の中央線（細い骨）
+        for (let i = 1; i < this.h / scale - 1; i++) {
+            drawBonePixel(5, i);
+            drawBonePixel(6, i);
+        }
+
+        // 上の球（4x4ピクセル）
+        drawBonePixel(4, 1); drawBonePixel(5, 0); drawBonePixel(6, 0); drawBonePixel(7, 1);
+        drawBonePixel(3, 2); drawBonePixel(4, 2); drawBonePixel(7, 2); drawBonePixel(8, 2);
+        drawBonePixel(4, 3); drawBonePixel(5, 3); drawBonePixel(6, 3); drawBonePixel(7, 3);
+
+        // 下の球（4x4ピクセル）
+        const bottomOffset = Math.floor(this.h / scale) - 4;
+        drawBonePixel(4, bottomOffset); drawBonePixel(5, bottomOffset); drawBonePixel(6, bottomOffset); drawBonePixel(7, bottomOffset);
+        drawBonePixel(3, bottomOffset + 1); drawBonePixel(4, bottomOffset + 1); drawBonePixel(7, bottomOffset + 1); drawBonePixel(8, bottomOffset + 1);
+        drawBonePixel(4, bottomOffset + 2); drawBonePixel(5, bottomOffset + 3); drawBonePixel(6, bottomOffset + 3); drawBonePixel(7, bottomOffset + 2);
     }
     checkCollision(pl) {
         if (this.x < pl.x + pl.w - 2 && this.x + this.w > pl.x + 2 &&
