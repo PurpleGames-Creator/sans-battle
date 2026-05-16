@@ -760,7 +760,6 @@ class GasterBlaster {
             ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(2000, 0); ctx.stroke();
         } else if (this.phase === 'FIRE') {
             const animW = this.timer < 10 ? this.laserWidth * (this.timer / 10) : this.laserWidth;
-            ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.fillRect(0, -animW / 2, 2000, animW);
             ctx.fillStyle = 'rgba(200,255,255,0.5)'; ctx.fillRect(0, -animW / 4, 2000, animW / 2);
         }
         // ★画像から直接読み取ったドットデータでガスターブラスターを描画
