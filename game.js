@@ -712,23 +712,25 @@ class Bone {
         };
 
         // 中央部分
-        for (let i = 2; i < this.h / scale - 2; i++) {
+        for (let i = 3; i < this.h / scale - 3; i++) {
             drawBonePixel(3, i);
             drawBonePixel(4, i);
             drawBonePixel(5, i);
             drawBonePixel(6, i);
         }
 
-        // 上の先端（左右に分かれる）
-        drawBonePixel(3, 0); drawBonePixel(6, 0);
-        drawBonePixel(3, 1); drawBonePixel(6, 1);
+        // 上の先端（丸みを帯びる）
+        drawBonePixel(4, 0); drawBonePixel(5, 0);
+        drawBonePixel(3, 1); drawBonePixel(4, 1); drawBonePixel(5, 1); drawBonePixel(6, 1);
         drawBonePixel(3, 2); drawBonePixel(4, 2); drawBonePixel(5, 2); drawBonePixel(6, 2);
+        drawBonePixel(3, 3); drawBonePixel(4, 3); drawBonePixel(5, 3); drawBonePixel(6, 3);
 
-        // 下の先端（左右に分かれる）
+        // 下の先端（丸みを帯びる）
         const bottomOffset = Math.floor(this.h / scale) - 3;
         drawBonePixel(3, bottomOffset); drawBonePixel(4, bottomOffset); drawBonePixel(5, bottomOffset); drawBonePixel(6, bottomOffset);
-        drawBonePixel(3, bottomOffset + 1); drawBonePixel(6, bottomOffset + 1);
-        drawBonePixel(3, bottomOffset + 2); drawBonePixel(6, bottomOffset + 2);
+        drawBonePixel(3, bottomOffset + 1); drawBonePixel(4, bottomOffset + 1); drawBonePixel(5, bottomOffset + 1); drawBonePixel(6, bottomOffset + 1);
+        drawBonePixel(3, bottomOffset + 2); drawBonePixel(4, bottomOffset + 2); drawBonePixel(5, bottomOffset + 2); drawBonePixel(6, bottomOffset + 2);
+        drawBonePixel(4, bottomOffset + 3); drawBonePixel(5, bottomOffset + 3);
     }
     checkCollision(pl) {
         if (this.x < pl.x + pl.w - 2 && this.x + this.w > pl.x + 2 &&
