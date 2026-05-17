@@ -19,6 +19,8 @@
             overflow-y: auto;
             font-family: 'Press Start 2P', monospace;
             touch-action: pan-y;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         #game-container {
@@ -42,15 +44,152 @@
             z-index: 5;
         }
 
-        /* スマートフォン横向き */
-        @media (orientation: landscape) and (max-height: 800px) {
-            #game-container { max-width: 100%; }
-            #enemy-container { height: 140px; }
-            #sans-sprite { height: 130px !important; }
-            #gameCanvas { max-height: 280px; }
-            #ui-container { padding: 3px 0 2px 0; }
-            .controls { gap: 2px; padding: 2px; }
-            .menu-btn { padding: 5px 0; font-size: 7px; }
+        /* スマートフォン横向き - iPhone SE対応 */
+        @media (orientation: landscape) and (max-height: 500px) {
+            body { overflow-y: hidden; }
+            #game-container {
+                max-width: 100%;
+                width: 100%;
+                height: 100vh;
+                flex-direction: row;
+                padding: 0;
+            }
+            #enemy-container {
+                width: 35%;
+                height: 100%;
+                margin-bottom: 0;
+                padding: 8px 0;
+                flex-shrink: 0;
+            }
+            #sans-sprite { height: 90px !important; }
+            #speech-bubble { display: none; }
+
+            #arena {
+                width: 65%;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+            }
+            #gameCanvas {
+                width: 100%;
+                flex: 1;
+                max-height: none;
+            }
+            #ui-container {
+                width: 100%;
+                padding: 4px 0;
+                display: flex;
+                flex-direction: column;
+            }
+            .hp-row {
+                padding: 2px 4px;
+                gap: 3px;
+            }
+            .player-name { font-size: 6px; }
+            .lv-label { font-size: 5px; }
+            .hp-label-ut { font-size: 5px; }
+            .hp-bar-wrapper { max-width: 120px; height: 10px; }
+            #hp-text { font-size: 5px; }
+            .kr-label { font-size: 5px; }
+            #kr-text { font-size: 5px; }
+
+            .controls {
+                flex-direction: column;
+                gap: 2px;
+                padding: 2px;
+                width: 100%;
+            }
+            .menu-btn {
+                padding: 4px 0;
+                font-size: 6px;
+            }
+            .btn-icon { font-size: 8px; }
+
+            #virtual-pad {
+                display: flex;
+                width: 100%;
+                padding: 4px;
+            }
+            #dpad { width: 70px; height: 70px; }
+            #dpad-up { width: 20px; height: 20px; top: 0; left: 25px; }
+            #dpad-down { width: 20px; height: 20px; bottom: 0; left: 25px; }
+            #dpad-left { width: 20px; height: 20px; top: 25px; left: 0; }
+            #dpad-right { width: 20px; height: 20px; top: 25px; right: 0; }
+            #jump-btn { width: 45px; height: 45px; font-size: 7px; }
+        }
+
+        /* 高さ500px以上800px以下 */
+        @media (orientation: landscape) and (min-height: 500px) and (max-height: 800px) {
+            body { overflow-y: hidden; }
+            #game-container {
+                max-width: 100%;
+                width: 100%;
+                height: 100vh;
+                flex-direction: row;
+                padding: 0;
+            }
+            #enemy-container {
+                width: 35%;
+                height: 100%;
+                margin-bottom: 0;
+                padding: 8px 0;
+                flex-shrink: 0;
+            }
+            #sans-sprite { height: 120px !important; }
+            #speech-bubble { display: none; }
+
+            #arena {
+                width: 65%;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+            }
+            #gameCanvas {
+                width: 100%;
+                flex: 1;
+                max-height: none;
+            }
+            #ui-container {
+                width: 100%;
+                padding: 4px 0;
+                display: flex;
+                flex-direction: column;
+            }
+            .hp-row {
+                padding: 3px 6px;
+                gap: 4px;
+            }
+            .player-name { font-size: 7px; }
+            .lv-label { font-size: 6px; }
+            .hp-label-ut { font-size: 6px; }
+            .hp-bar-wrapper { max-width: 140px; height: 12px; }
+            #hp-text { font-size: 6px; }
+            .kr-label { font-size: 6px; }
+            #kr-text { font-size: 6px; }
+
+            .controls {
+                flex-direction: column;
+                gap: 2px;
+                padding: 3px;
+                width: 100%;
+            }
+            .menu-btn {
+                padding: 5px 0;
+                font-size: 7px;
+            }
+            .btn-icon { font-size: 9px; }
+
+            #virtual-pad {
+                display: flex;
+                width: 100%;
+                padding: 6px;
+            }
+            #dpad { width: 80px; height: 80px; }
+            #dpad-up { width: 24px; height: 24px; top: 0; left: 28px; }
+            #dpad-down { width: 24px; height: 24px; bottom: 0; left: 28px; }
+            #dpad-left { width: 24px; height: 24px; top: 28px; left: 0; }
+            #dpad-right { width: 24px; height: 24px; top: 28px; right: 0; }
+            #jump-btn { width: 50px; height: 50px; font-size: 8px; }
         }
 
         #sans-sprite {
