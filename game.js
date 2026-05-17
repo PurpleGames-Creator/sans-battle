@@ -984,23 +984,28 @@ Patterns.push((t) => {
     return t > 900;
 });
 
-// Turn 2: 本家サンズ風・地面を這う骨（小ジャンプで避ける）
+// Turn 2: 本家サンズ風・地面を這う骨（難易度UP：密集 + 高さ変動 + 速度UP）
 Patterns.push((t) => {
     if (t === 0) { p.isBlue = true; p.gravityDir = 'DOWN'; }
 
-    // ★地面ギリギリを這う低い骨（高さ20px・ジャンプしないと絶対当たる）
-    if (t === 60) spawnBone(W + 10, H - 20, 12, 20, -1.2, 0, false);
-    if (t === 180) spawnBone(W + 10, H - 20, 12, 20, -1.2, 0, false);
-    if (t === 300) spawnBone(W + 10, H - 20, 12, 20, -1.2, 0, false);
+    // ★第1波：低い骨が密集（タイミング難）
+    if (t === 40) spawnBone(W + 10, H - 20, 12, 20, -1.4, 0, false);
+    if (t === 100) spawnBone(W + 10, H - 30, 12, 30, -1.4, 0, false);
+    if (t === 160) spawnBone(W + 10, H - 20, 12, 20, -1.4, 0, false);
+    if (t === 220) spawnBone(W + 10, H - 25, 12, 25, -1.4, 0, false);
 
-    // ★少し間を開けて2連続（タイミングが難しい）
-    if (t === 460) spawnBone(W + 10, H - 20, 12, 20, -1.3, 0, false);
-    if (t === 540) spawnBone(W + 10, H - 20, 12, 20, -1.3, 0, false);
+    // ★第2波：さらに密集（左右交互も混ぜる）
+    if (t === 340) spawnBone(W + 10, H - 20, 12, 20, -1.5, 0, false);
+    if (t === 390) spawnBone(-20, H - 30, 12, 30, 1.5, 0, false);
+    if (t === 440) spawnBone(W + 10, H - 25, 12, 25, -1.5, 0, false);
+    if (t === 490) spawnBone(-20, H - 20, 12, 20, 1.5, 0, false);
 
-    // ★最後に3連続（本家っぽい）
-    if (t === 700) spawnBone(W + 10, H - 20, 12, 20, -1.4, 0, false);
-    if (t === 760) spawnBone(W + 10, H - 20, 12, 20, -1.4, 0, false);
-    if (t === 820) spawnBone(W + 10, H - 20, 12, 20, -1.4, 0, false);
+    // ★第3波：さらに速く、5連続の嵐
+    if (t === 620) spawnBone(W + 10, H - 20, 12, 20, -1.6, 0, false);
+    if (t === 670) spawnBone(W + 10, H - 30, 12, 30, -1.6, 0, false);
+    if (t === 720) spawnBone(W + 10, H - 20, 12, 20, -1.6, 0, false);
+    if (t === 770) spawnBone(W + 10, H - 25, 12, 25, -1.6, 0, false);
+    if (t === 820) spawnBone(W + 10, H - 20, 12, 20, -1.6, 0, false);
 
     return t > 1050;
 });
@@ -1021,14 +1026,39 @@ Patterns.push((t) => {
     return t > 1000;
 });
 
-// Turn 5: 青骨→白骨（ゆっくり）
+// Turn 5: 青骨→白骨（難易度UP：数倍の骨 + 速度UP + 複雑パターン）
 Patterns.push((t) => {
     if (t === 0) { p.isBlue = true; p.gravityDir = 'DOWN'; }
-    if (t === 80) spawnBone(W + 10, H - 65, 12, 65, -1.1, 0, true);
-    if (t === 280) spawnBone(W + 10, H - 50, 12, 50, -1.1, 0, false);
-    if (t === 450) spawnBone(-20, H - 65, 12, 65, 1.1, 0, true);
-    if (t === 650) spawnBone(-20, H - 50, 12, 50, 1.1, 0, false);
-    return t > 900;
+
+    // ★第1波：右から青骨＋白骨の連続
+    if (t === 50) spawnBone(W + 10, H - 60, 12, 60, -1.3, 0, true);
+    if (t === 140) spawnBone(W + 10, H - 50, 12, 50, -1.3, 0, false);
+    if (t === 220) spawnBone(W + 10, H - 65, 12, 65, -1.3, 0, true);
+    if (t === 310) spawnBone(W + 10, H - 45, 12, 45, -1.3, 0, false);
+
+    // ★第2波：左から同時に発射（左右交互ではなく複雑化）
+    if (t === 380) {
+        spawnBone(-20, H - 60, 12, 60, 1.4, 0, true);
+        spawnBone(W + 10, H - 55, 12, 55, -1.4, 0, false);
+    }
+    if (t === 480) {
+        spawnBone(-20, H - 50, 12, 50, 1.4, 0, false);
+        spawnBone(W + 10, H - 65, 12, 65, -1.4, 0, true);
+    }
+
+    // ★第3波：左から青骨＋白骨の連続
+    if (t === 560) spawnBone(-20, H - 65, 12, 65, 1.4, 0, true);
+    if (t === 650) spawnBone(-20, H - 45, 12, 45, 1.4, 0, false);
+    if (t === 730) spawnBone(-20, H - 55, 12, 55, 1.4, 0, true);
+    if (t === 820) spawnBone(-20, H - 50, 12, 50, 1.4, 0, false);
+
+    // ★第4波：最後のラッシュ（同時発射が多い）
+    if (t === 880) {
+        spawnBone(W + 10, H - 60, 12, 60, -1.5, 0, false);
+        spawnBone(-20, H - 60, 12, 60, 1.5, 0, false);
+    }
+
+    return t > 1050;
 });
 
 // Turn 6: 骨＋ブラスター1発（予告たっぷり）
