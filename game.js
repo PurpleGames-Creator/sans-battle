@@ -376,14 +376,14 @@ const imgBlaster = new Image();
 imgBlaster.src = "";
 let blasterCanvas = null;
 
-const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, z: false };
+window.keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, z: false };
 window.addEventListener('keydown', e => {
-    if (keys.hasOwnProperty(e.key)) { keys[e.key] = true; e.preventDefault(); }
-    if (e.key.toLowerCase() === 'z') { keys.z = true; }
+    if (window.keys.hasOwnProperty(e.key)) { window.keys[e.key] = true; e.preventDefault(); }
+    if (e.key.toLowerCase() === 'z') { window.keys.z = true; }
 });
 window.addEventListener('keyup', e => {
-    if (keys.hasOwnProperty(e.key)) { keys[e.key] = false; }
-    if (e.key.toLowerCase() === 'z') { keys.z = false; }
+    if (window.keys.hasOwnProperty(e.key)) { window.keys[e.key] = false; }
+    if (e.key.toLowerCase() === 'z') { window.keys.z = false; }
 });
 
 // turnState:
@@ -527,9 +527,9 @@ class Player {
     }
 
     _updateDown() {
-        if (keys.ArrowLeft) this.x -= this.speed;
-        if (keys.ArrowRight) this.x += this.speed;
-        const jumpHeld = keys.z || keys.ArrowUp;
+        if (window.keys.ArrowLeft) this.x -= this.speed;
+        if (window.keys.ArrowRight) this.x += this.speed;
+        const jumpHeld = window.keys.z || window.keys.ArrowUp;
         const cH = canvas.height; // ★キャンバスの現在の高さを参照
 
         if (this.isJumping && this.vy < 0 && !jumpHeld) this.vy *= 0.96;
@@ -550,9 +550,9 @@ class Player {
     }
 
     _updateUp() {
-        if (keys.ArrowLeft) this.x -= this.speed;
-        if (keys.ArrowRight) this.x += this.speed;
-        const jumpHeld = keys.z || keys.ArrowDown;
+        if (window.keys.ArrowLeft) this.x -= this.speed;
+        if (window.keys.ArrowRight) this.x += this.speed;
+        const jumpHeld = window.keys.z || window.keys.ArrowDown;
 
         if (this.isJumping && this.vy > 0 && !jumpHeld) this.vy *= 0.96;
         this.vy -= this._gravity(jumpHeld, this.vy, true);
@@ -572,9 +572,9 @@ class Player {
     }
 
     _updateLeft() {
-        if (keys.ArrowUp) this.y -= this.speed;
-        if (keys.ArrowDown) this.y += this.speed;
-        const jumpHeld = keys.z || keys.ArrowRight;
+        if (window.keys.ArrowUp) this.y -= this.speed;
+        if (window.keys.ArrowDown) this.y += this.speed;
+        const jumpHeld = window.keys.z || window.keys.ArrowRight;
 
         if (this.isJumping && this.vx > 0 && !jumpHeld) this.vx *= 0.96;
         this.vx -= this._gravity(jumpHeld, this.vx, true);
@@ -594,9 +594,9 @@ class Player {
     }
 
     _updateRight() {
-        if (keys.ArrowUp) this.y -= this.speed;
-        if (keys.ArrowDown) this.y += this.speed;
-        const jumpHeld = keys.z || keys.ArrowLeft;
+        if (window.keys.ArrowUp) this.y -= this.speed;
+        if (window.keys.ArrowDown) this.y += this.speed;
+        const jumpHeld = window.keys.z || window.keys.ArrowLeft;
         const cW = canvas.width; // ★キャンバスの現在の幅を参照
 
         if (this.isJumping && this.vx < 0 && !jumpHeld) this.vx *= 0.96;
@@ -620,10 +620,10 @@ class Player {
         this.lastX = this.x; this.lastY = this.y;
         const cW = canvas.width, cH = canvas.height; // ★常に最新サイズを参照
         if (!this.isBlue) {
-            if (keys.ArrowUp) this.y -= this.speed;
-            if (keys.ArrowDown) this.y += this.speed;
-            if (keys.ArrowLeft) this.x -= this.speed;
-            if (keys.ArrowRight) this.x += this.speed;
+            if (window.keys.ArrowUp) this.y -= this.speed;
+            if (window.keys.ArrowDown) this.y += this.speed;
+            if (window.keys.ArrowLeft) this.x -= this.speed;
+            if (window.keys.ArrowRight) this.x += this.speed;
         } else {
             if (this.gravityDir === 'DOWN') this._updateDown();
             else if (this.gravityDir === 'UP') this._updateUp();
