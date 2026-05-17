@@ -1061,11 +1061,12 @@ Patterns.push((t) => {
     return t > 1050;
 });
 
-// Turn 6: 骨＋ブラスター1発（予告たっぷり）
+// Turn 6: 骨＋ブラスター複数発（難易度UP：速度UP + ブラスター追加）
 Patterns.push((t) => {
     if (t === 0) { p.isBlue = true; p.gravityDir = 'DOWN'; }
-    if (t % 150 === 0 && t < 700) spawnBone(W + 10, H - 50, 12, 50, -1.1, 0, false);
-    if (t === 350) spawnBlaster(W * 0.15, H * 0.15, null, 1, 180, 50, 40);
+    if (t % 150 === 0 && t < 700) spawnBone(W + 10, H - 50, 12, 50, -1.2, 0, false);
+    if (t === 320) spawnBlaster(W * 0.15, H * 0.15, null, 1, 180, 50, 40);
+    if (t === 650) spawnBlaster(W * 0.85, H * 0.85, null, 1, 180, 50, 40);
     return t > 1000;
 });
 
@@ -1085,11 +1086,11 @@ Patterns.push((t) => {
     return t > 1400;
 });
 
-// Turn 8: ゆっくり骨が続く
+// Turn 8: ゆっくり骨が続く（難易度UP：速度UP + 間隔短縮）
 Patterns.push((t) => {
     if (t === 0) { p.isBlue = true; p.gravityDir = 'DOWN'; }
-    if (t % 160 === 0 && t < 800) spawnBone(W + 10, H - 50, 12, 50, -0.9, 0, false);
-    if (t % 160 === 80 && t < 800) spawnBone(W + 10, 0, 12, H - 65, -0.9, 0, false);
+    if (t % 150 === 0 && t < 800) spawnBone(W + 10, H - 50, 12, 50, -1.0, 0, false);
+    if (t % 150 === 75 && t < 800) spawnBone(W + 10, 0, 12, H - 65, -1.0, 0, false);
     return t > 1000;
 });
 
@@ -1211,21 +1212,34 @@ Patterns.push((t) => {
     return t > 1000;
 });
 
-// Turn 12: 重力操作＋骨（骨メイン）
+// Turn 12: 重力操作＋骨＋ブラスター（攻撃充実化）
 Patterns.push((t) => {
     if (t === 0) { p.isBlue = true; }
+
+    // ★LEFT重力フェーズ：骨 + ブラスター追加
     if (t === 30) p.setGravityDir('LEFT');
     if (t === 50) spawnSlam('LEFT', 80, 30);
-    if (t === 80) spawnBone(0, H * 0.3, 30, 12, 1.5, 0, false);
-    if (t === 160) spawnBone(0, H * 0.6, 30, 12, 1.5, 0, false);
-    if (t === 250) p.setGravityDir('RIGHT');
-    if (t === 270) spawnSlam('RIGHT', 80, 30);
-    if (t === 300) spawnBone(W, H * 0.3, 30, 12, -1.5, 0, false);
-    if (t === 380) spawnBone(W, H * 0.6, 30, 12, -1.5, 0, false);
-    if (t === 460) p.setGravityDir('DOWN');
-    // ブラスター固定・補助
-    if (t === 500) spawnBlaster(W * 0.5, H * 0.05, Math.PI / 2, 1, 140, 35, 35);
-    return t > 750;
+    if (t === 80) spawnBone(0, H * 0.2, 30, 12, 1.5, 0, false);
+    if (t === 130) spawnBone(0, H * 0.4, 30, 12, 1.5, 0, false);
+    if (t === 180) spawnBone(0, H * 0.6, 30, 12, 1.5, 0, false);
+    if (t === 230) spawnBone(0, H * 0.8, 30, 12, 1.5, 0, false);
+    if (t === 160) spawnBlaster(W * 0.1, H * 0.3, 0, 0.9, 120, 40, 40);
+
+    // ★RIGHT重力フェーズ：骨 + ブラスター追加
+    if (t === 300) p.setGravityDir('RIGHT');
+    if (t === 320) spawnSlam('RIGHT', 80, 30);
+    if (t === 350) spawnBone(W, H * 0.2, 30, 12, -1.5, 0, false);
+    if (t === 400) spawnBone(W, H * 0.4, 30, 12, -1.5, 0, false);
+    if (t === 450) spawnBone(W, H * 0.6, 30, 12, -1.5, 0, false);
+    if (t === 500) spawnBone(W, H * 0.8, 30, 12, -1.5, 0, false);
+    if (t === 410) spawnBlaster(W * 0.9, H * 0.3, Math.PI, 0.9, 120, 40, 40);
+
+    // ★DOWN重力フェーズ：追加のブラスター攻撃
+    if (t === 580) p.setGravityDir('DOWN');
+    if (t === 620) spawnBlaster(W * 0.3, H * 0.05, Math.PI / 2, 1, 140, 40, 40);
+    if (t === 720) spawnBlaster(W * 0.7, H * 0.05, Math.PI / 2, 1, 140, 40, 40);
+
+    return t > 900;
 });
 
 // Turn 13: 追尾ブラスター1発ずつポンポン（赤ソウル）
