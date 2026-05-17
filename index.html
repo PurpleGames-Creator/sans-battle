@@ -2,7 +2,9 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Sans Battle</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
@@ -14,13 +16,15 @@
             flex-direction: column;
             justify-content: flex-start;
             align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden;
-            overflow-y: auto;
+            height: 100vh;
+            overflow: hidden;
             font-family: 'Press Start 2P', monospace;
             touch-action: pan-y;
             user-select: none;
             -webkit-user-select: none;
+            position: fixed;
+            width: 100%;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
 
         #game-container {
@@ -46,29 +50,58 @@
 
         /* スマートフォン横向き - iPhone SE対応 */
         @media (orientation: landscape) and (max-height: 500px) {
-            body { overflow-y: hidden; }
+            body { overflow: hidden; }
             #game-container {
                 max-width: 100%;
                 width: 100%;
                 height: 100vh;
-                flex-direction: row;
+                display: grid;
+                grid-template-columns: 40% 60%;
+                grid-template-rows: 1fr;
                 padding: 0;
+                gap: 0;
             }
-            #enemy-container {
-                width: 35%;
+
+            #virtual-pad {
+                order: -2;
+                grid-column: 1;
+                grid-row: 1;
+                display: flex !important;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                width: 100%;
                 height: 100%;
-                margin-bottom: 0;
-                padding: 8px 0;
-                flex-shrink: 0;
+                padding: 4px;
+                background: #000;
             }
-            #sans-sprite { height: 90px !important; }
+            #dpad { width: 70px; height: 70px; }
+            #dpad-up { width: 20px; height: 20px; top: 0; left: 25px; }
+            #dpad-down { width: 20px; height: 20px; bottom: 0; left: 25px; }
+            #dpad-left { width: 20px; height: 20px; top: 25px; left: 0; }
+            #dpad-right { width: 20px; height: 20px; top: 25px; right: 0; }
+            #jump-btn { width: 45px; height: 45px; font-size: 7px; }
+
+            #enemy-container {
+                order: -1;
+                grid-column: 2;
+                grid-row: 1;
+                width: 100%;
+                height: auto;
+                margin-bottom: 0;
+                padding: 4px 0;
+                flex-direction: column;
+            }
+            #sans-sprite { height: 60px !important; }
             #speech-bubble { display: none; }
 
             #arena {
-                width: 65%;
-                flex: 1;
+                grid-column: 2;
+                grid-row: 1;
+                width: 100%;
                 display: flex;
                 flex-direction: column;
+                flex: 1;
             }
             #gameCanvas {
                 width: 100%;
@@ -76,10 +109,13 @@
                 max-height: none;
             }
             #ui-container {
+                grid-column: 2;
+                grid-row: 1;
                 width: 100%;
                 padding: 4px 0;
                 display: flex;
                 flex-direction: column;
+                background: #000;
             }
             .hp-row {
                 padding: 2px 4px;
@@ -104,45 +140,62 @@
                 font-size: 6px;
             }
             .btn-icon { font-size: 8px; }
-
-            #virtual-pad {
-                display: flex;
-                width: 100%;
-                padding: 4px;
-            }
-            #dpad { width: 70px; height: 70px; }
-            #dpad-up { width: 20px; height: 20px; top: 0; left: 25px; }
-            #dpad-down { width: 20px; height: 20px; bottom: 0; left: 25px; }
-            #dpad-left { width: 20px; height: 20px; top: 25px; left: 0; }
-            #dpad-right { width: 20px; height: 20px; top: 25px; right: 0; }
-            #jump-btn { width: 45px; height: 45px; font-size: 7px; }
         }
 
         /* 高さ500px以上800px以下 */
         @media (orientation: landscape) and (min-height: 500px) and (max-height: 800px) {
-            body { overflow-y: hidden; }
+            body { overflow: hidden; }
             #game-container {
                 max-width: 100%;
                 width: 100%;
                 height: 100vh;
-                flex-direction: row;
+                display: grid;
+                grid-template-columns: 40% 60%;
+                grid-template-rows: 1fr;
                 padding: 0;
+                gap: 0;
             }
-            #enemy-container {
-                width: 35%;
+
+            #virtual-pad {
+                order: -2;
+                grid-column: 1;
+                grid-row: 1;
+                display: flex !important;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                width: 100%;
                 height: 100%;
+                padding: 6px;
+                background: #000;
+            }
+            #dpad { width: 80px; height: 80px; }
+            #dpad-up { width: 24px; height: 24px; top: 0; left: 28px; }
+            #dpad-down { width: 24px; height: 24px; bottom: 0; left: 28px; }
+            #dpad-left { width: 24px; height: 24px; top: 28px; left: 0; }
+            #dpad-right { width: 24px; height: 24px; top: 28px; right: 0; }
+            #jump-btn { width: 50px; height: 50px; font-size: 8px; }
+
+            #enemy-container {
+                order: -1;
+                grid-column: 2;
+                grid-row: 1;
+                width: 100%;
+                height: auto;
                 margin-bottom: 0;
                 padding: 8px 0;
-                flex-shrink: 0;
+                flex-direction: column;
             }
-            #sans-sprite { height: 120px !important; }
+            #sans-sprite { height: 80px !important; }
             #speech-bubble { display: none; }
 
             #arena {
-                width: 65%;
-                flex: 1;
+                grid-column: 2;
+                grid-row: 1;
+                width: 100%;
                 display: flex;
                 flex-direction: column;
+                flex: 1;
             }
             #gameCanvas {
                 width: 100%;
@@ -150,10 +203,13 @@
                 max-height: none;
             }
             #ui-container {
+                grid-column: 2;
+                grid-row: 1;
                 width: 100%;
                 padding: 4px 0;
                 display: flex;
                 flex-direction: column;
+                background: #000;
             }
             .hp-row {
                 padding: 3px 6px;
@@ -178,18 +234,6 @@
                 font-size: 7px;
             }
             .btn-icon { font-size: 9px; }
-
-            #virtual-pad {
-                display: flex;
-                width: 100%;
-                padding: 6px;
-            }
-            #dpad { width: 80px; height: 80px; }
-            #dpad-up { width: 24px; height: 24px; top: 0; left: 28px; }
-            #dpad-down { width: 24px; height: 24px; bottom: 0; left: 28px; }
-            #dpad-left { width: 24px; height: 24px; top: 28px; left: 0; }
-            #dpad-right { width: 24px; height: 24px; top: 28px; right: 0; }
-            #jump-btn { width: 50px; height: 50px; font-size: 8px; }
         }
 
         #sans-sprite {
@@ -476,7 +520,22 @@
         });
     }
     document.addEventListener('DOMContentLoaded', setupVirtualPad);
+
+    // Hide address bar and footer UI on load and orientation change
+    function hideAddressBar() {
+        if (window.innerHeight < window.outerHeight) {
+            window.scrollTo(0, 1);
+        }
+    }
+    window.addEventListener('load', hideAddressBar);
+    window.addEventListener('orientationchange', () => {
+        setTimeout(hideAddressBar, 100);
+    });
+    window.addEventListener('resize', hideAddressBar);
+    document.addEventListener('scroll', () => {
+        if (window.scrollY > 0) window.scrollTo(0, 0);
+    });
     </script>
-    <script src="game.js?v=11"></script>
+    <script src="game.js?v=12"></script>
 </body>
 </html>
